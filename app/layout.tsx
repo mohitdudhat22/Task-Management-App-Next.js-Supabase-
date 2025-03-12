@@ -7,8 +7,8 @@ import { Geist } from "next/font/google";
 import { ThemeProvider } from "next-themes";
 import Link from "next/link";
 import "./globals.css";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import Providers from './providers'
+import { Toaster } from "react-hot-toast";
 
 const defaultUrl = process.env.VERCEL_URL
   ? `https://${process.env.VERCEL_URL}`
@@ -24,9 +24,6 @@ const geistSans = Geist({
   display: "swap",
   subsets: ["latin"],
 });
-
-// Create a client
-const queryClient = new QueryClient();
 
 export default function RootLayout({
   children,
@@ -57,6 +54,7 @@ export default function RootLayout({
                     </div>
                   </nav>
                   <div className="flex flex-col gap-20 max-w-5xl p-5">
+                  <Toaster position="top-right" />
                     {children}
                   </div>
                 </div>

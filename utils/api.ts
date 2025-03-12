@@ -41,7 +41,10 @@ export const projectApi = {
   },
 
   delete: async (projectId: string) => {
+    //delete all tasks associated with the project
     const { error } = await supabase.from('projects').delete().eq('id', projectId);
+    const { error: taskError } = await supabase.from('tasks').delete().eq('project_id', projectId);
+    if (taskError) throw taskError;
     if (error) throw error;
   },
 

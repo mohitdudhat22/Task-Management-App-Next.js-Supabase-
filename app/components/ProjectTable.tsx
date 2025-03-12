@@ -1,4 +1,5 @@
 import { Button } from '@/components/ui/button';
+import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from "@/components/ui/table";
 import { useRouter } from 'next/navigation';
 
 interface Project {
@@ -17,33 +18,33 @@ export function ProjectTable({ projects, onDelete }: ProjectTableProps) {
 
     return (
         <>
-            <h1 className="text-2xl font-bold mb-6">Projects</h1>
+            <h1 className="text-2xl font-bold my-3">Projects</h1>
             <div className="border rounded-md">
-                <table className="w-full">
-                    <thead>
-                    <tr>
-                        <th className="p-4 text-left border-b">Name</th>
-                        <th className="p-4 text-left border-b">Description</th>
-                        <th className="p-4 text-left border-b">Actions</th>
-                    </tr>
-                </thead>
-                <tbody>
+                <Table className="w-full">
+                    <TableHeader>
+                    <TableRow>
+                        <TableHead>Name</TableHead>
+                        <TableHead>Description</TableHead>
+                        <TableHead>Actions</TableHead>
+                    </TableRow>
+                </TableHeader>
+                <TableBody>
                     {projects.map(project => (
-                        <tr key={project.id}>
-                            <td className="p-4 border-b">{project.name}</td>
-                            <td className="p-4 border-b">{project.description || '-'}</td>
-                            <td className="p-4 border-b space-x-2">
+                        <TableRow key={project.id}>
+                            <TableCell>{project.name}</TableCell>
+                            <TableCell>{project.description || '-'}</TableCell>
+                            <TableCell className="p-4 border-b space-x-2">
                                 <Button size="sm" onClick={() => router.push(`/protected/tasks`)}>
                                     Manage Tasks
                                 </Button>
                                 <Button size="sm" variant="destructive" onClick={() => onDelete(project.id)}>
                                     Delete
                                 </Button>
-                            </td>
-                        </tr>
+                            </TableCell>
+                        </TableRow>
                     ))}
-                    </tbody>
-                </table>
+                    </TableBody>
+                </Table>
             </div>
         </>
     );

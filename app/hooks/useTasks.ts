@@ -1,5 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { taskApi } from '@/utils/api';
+import toast from 'react-hot-toast';
 
 interface Task {
     id: string;
@@ -22,7 +23,11 @@ export function useTasks() {
         mutationFn: (task: { title: string; project_id: string; status: "pending" | "in_progress" | "completed" }) => 
             taskApi.create({ ...task}),
         onSuccess: () => {
+            toast.success('Task created successfully');
             queryClient.invalidateQueries({ queryKey: ['tasks'] });
+        },
+        onError: (error) => {
+            toast.error('Failed to create task');
         }
     });
 
@@ -30,14 +35,22 @@ export function useTasks() {
         mutationFn: ({ id, status }: { id: string; status: "pending" | "in_progress" | "completed" }) => 
             taskApi.updateStatus(id, status), // Ensure this matches your API method
         onSuccess: () => {
+            toast.success('Task updated successfully');
             queryClient.invalidateQueries({ queryKey: ['tasks'] });
+        },
+        onError: (error) => {
+            toast.error('Failed to update task');
         }
     });
 
     const deleteMutation = useMutation({
         mutationFn: taskApi.delete,
         onSuccess: () => {
+            toast.success('Task deleted successfully');
             queryClient.invalidateQueries({ queryKey: ['tasks'] });
+        },
+        onError: (error) => {
+            toast.error('Failed to delete task');
         }
     });
 
