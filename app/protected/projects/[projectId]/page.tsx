@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Loader } from 'lucide-react';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 
 const TASK_STATUSES = ['pending', 'in_progress', 'completed'];
 
@@ -38,13 +39,6 @@ export default function ProjectDetails() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['tasks', projectId] });
       setNewTask({ title: '', status: 'pending' });
-    },
-  });
-
-  const updateTaskMutation = useMutation({
-    mutationFn: (task: Task) => taskApi.updateTask(task.id, task),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['tasks', projectId] });
     },
   });
 
@@ -103,30 +97,54 @@ export default function ProjectDetails() {
         ) : tasks.length === 0 ? (
           <p>No tasks found</p>
         ) : (
-          <ul className="mt-4">
-            {tasks.map((task) => (
-              <li key={task.id} className="flex justify-between p-2 border-b">
-                <div>
-                  <p className="font-medium">{task.title}</p>
-                </div>
-                <Select
-                  value={task.status}
-                  onValueChange={(status) => updateTaskStatusMutation.mutate({ taskId: task.id, status })}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select Status" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {TASK_STATUSES.map((status) => (
-                      <SelectItem key={status} value={status}>
-                        {status.replace('_', ' ')}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </li>
-            ))}
-          </ul>
+          <Table className="mt-4">
+            <TableHeader>
+              <TableRow>
+                <TableHead>Task</TableHead>
+                <TableHead>Status</TableHead>
+                <TableHead>Actions</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {tasks.map((task) => (
+                <TableRow key={task.id}>
+                  <TableCell>{task.title}</TableCell>
+                  <TableCell>
+                    <Select
+                      value={task.status}
+                      onValueChange={(status) => updateTaskStatusMutation.mutate({ taskId: task.id, status })}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select Status" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {TASK_STATUSES.map((status) => (
+                          <SelectItem key={status} value={status}>
+                            {status.replace('_', ' ')}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </TableCell>
+                  <TableCell>
+                    <Button
+                      variant="destructive"
+                      onClick={() => taskApi.delete(task.id).then(() => queryClient.invalidateQueries({ queryKey: ['tasks', projectId] }))}
+                    >
+                      Delete
+                    </Button>
+                    <Button
+                      className="ml-4"
+                      variant="outline"
+                      onClick={() => taskApi.updateTask(task.id, task).then(() => queryClient.invalidateQueries({ queryKey: ['tasks', projectId] }))}
+                    >
+                      Update
+                    </Button>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
         )}
       </div>
     </div>

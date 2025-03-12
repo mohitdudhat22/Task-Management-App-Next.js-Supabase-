@@ -4,6 +4,7 @@ import { encodedRedirect } from "@/utils/utils";
 import { createClient } from "@/utils/supabase/server";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
+import { userApi } from "@/utils/api";
 
 export const signUpAction = async (formData: FormData) => {
   const email = formData.get("email")?.toString();
@@ -15,6 +16,12 @@ export const signUpAction = async (formData: FormData) => {
     return encodedRedirect("error", "/sign-up", "Email and password are required");
   }
 
+  //check for it email already exists
+  const user = await userApi.getUserByEmail(email);
+  if (user) {
+    return encodedRedirect("error", "/sign-up", "Email already exists");
+  }
+  
   // Sign up with Supabase Auth
   const { error } = await supabase.auth.signUp({
     email,

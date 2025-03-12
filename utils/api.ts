@@ -3,6 +3,14 @@ import { Project, Task } from '@/types/database';
 
 const supabase = createClient();
 
+export const userApi = {
+    getUserByEmail: async (email: string) => {
+        const { data, error } = await supabase.from('users').select('*').eq('email', email).single();
+        if (error) throw error;
+        return data;
+    }
+}
+
 export const projectApi = {
   getAll: async () => {
     const { data, error } = await supabase.from('projects').select('*').order('created_at', { ascending: false });
