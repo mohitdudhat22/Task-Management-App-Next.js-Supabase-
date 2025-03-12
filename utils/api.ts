@@ -15,12 +15,14 @@ export const projectApi = {
   },
 
   create: async (project: Omit<Project, 'id' | 'created_at' | 'user_id'>) => {
+    const userData = await supabase.auth.getUser();
+    if (!userData) throw new Error("User not authenticated");
     const { data, error } = await supabase
       .from('projects')
-      .insert(project)
+      .insert({...project, user_id: userData?.data?.user?.id})
       .select()
       .single();
-    
+    console.log(data,"<<<<<<<<<<<<<<<<<<<<<",error);
     if (error) throw error;
     return data;
   },
