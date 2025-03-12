@@ -13,7 +13,7 @@ import { Button } from "@/components/ui/button"
 import { PlusCircle, MinusCircle, Layers, CheckSquare } from "lucide-react"
 
 export default function ProjectsPage() {
-  const { projects, createProject, deleteProject } = useProjects()
+  const { projects, createProject, deleteProject, updateProject } = useProjects()
   const { tasks, createTask, updateTask, deleteTask } = useTasks()
   const [showCreateProjectForm, setShowCreateProjectForm] = useState(false)
   const [showCreateTaskForm, setShowCreateTaskForm] = useState(false)
@@ -78,7 +78,7 @@ export default function ProjectsPage() {
               <CardDescription>Manage your existing projects</CardDescription>
             </CardHeader>
             <CardContent className="w-full max-w-2xl mx-auto">
-              <ProjectTable projects={projects} onDelete={deleteProject} />
+              <ProjectTable projects={projects} onDelete={deleteProject} onUpdate={updateProject} />
             </CardContent>
           </Card>
         </TabsContent>

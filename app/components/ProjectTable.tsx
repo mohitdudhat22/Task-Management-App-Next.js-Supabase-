@@ -130,6 +130,13 @@ export function ProjectTable({ projects, onDelete, onUpdate }: ProjectTableProps
                         </>
                       ) : (
                         <>
+                        <Button 
+                            size="sm" 
+                            onClick={() => router.push(`/protected/tasks/${project.id}`)}
+                            className="h-8 px-2"
+                          >
+                            Tasks
+                          </Button>
                           <Button size="sm" variant="outline" onClick={() => startEditing(project)} className="h-8 px-2">
                             <Edit2 className="h-4 w-4 mr-1" /> Edit
                           </Button>
