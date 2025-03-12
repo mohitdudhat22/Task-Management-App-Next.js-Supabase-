@@ -5,7 +5,6 @@ import { createClient } from "@/utils/supabase/server";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { userApi } from "@/utils/api";
-import toast from "react-hot-toast";
 
 export const signUpAction = async (formData: FormData) => {
   const email = formData.get("email")?.toString();
@@ -14,7 +13,6 @@ export const signUpAction = async (formData: FormData) => {
   const origin = (await headers()).get("origin");
 
   if (!email || !password) {
-    toast.error('Email and password are required');
     return encodedRedirect("error", "/sign-up", "Email and password are required");
   }
 
@@ -34,12 +32,10 @@ export const signUpAction = async (formData: FormData) => {
   });
 
   if (error) {
-    toast.error(error.message);
     console.error(error.code + " " + error.message);
     return encodedRedirect("error", "/sign-up", error.message);
   }
 
-  toast.success('Thanks for signing up! Please check your email for a verification link.');
   return encodedRedirect(
     "success",
     "/sign-up",
@@ -51,18 +47,15 @@ export const signInAction = async (formData: FormData) => {
   const email = formData.get("email") as string;
   const password = formData.get("password") as string;
   const supabase = await createClient();
-
   const { error } = await supabase.auth.signInWithPassword({
     email,
     password,
   });
 
   if (error) {
-    toast.error(error.message);
     return encodedRedirect("error", "/sign-in", error.message);
   }
 
-  toast.success('Signed in successfully');
   return redirect("/protected");
 };
 
@@ -81,7 +74,6 @@ export const forgotPasswordAction = async (formData: FormData) => {
   });
 
   if (error) {
-    toast.error(error.message);
     console.error(error.message);
     return encodedRedirect(
       "error",
@@ -91,7 +83,6 @@ export const forgotPasswordAction = async (formData: FormData) => {
   }
 
   if (callbackUrl) {
-    toast.success('Check your email for a link to reset your password.');
     return redirect(callbackUrl);
   }
 
@@ -109,7 +100,6 @@ export const resetPasswordAction = async (formData: FormData) => {
   const confirmPassword = formData.get("confirmPassword") as string;
 
   if (!password || !confirmPassword) {
-    toast.error('Password and confirm password are required');
     encodedRedirect(
       "error",
       "/protected/reset-password",
@@ -118,7 +108,6 @@ export const resetPasswordAction = async (formData: FormData) => {
   }
 
   if (password !== confirmPassword) {
-    toast.error('Passwords do not match');
     encodedRedirect(
       "error",
       "/protected/reset-password",
@@ -131,7 +120,6 @@ export const resetPasswordAction = async (formData: FormData) => {
   });
 
   if (error) {
-    toast.error('Password update failed');
     encodedRedirect(
       "error",
       "/protected/reset-password",
@@ -139,13 +127,11 @@ export const resetPasswordAction = async (formData: FormData) => {
     );
   }
 
-  toast.success('Password updated');
   encodedRedirect("success", "/protected/reset-password", "Password updated");
 };
 
 export const signOutAction = async () => {
   const supabase = await createClient();
   await supabase.auth.signOut();
-  toast.success('Signed out successfully');
   return redirect("/sign-in");
 };

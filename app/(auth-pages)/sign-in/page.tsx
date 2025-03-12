@@ -18,6 +18,16 @@ import {
 import { ShineBorder } from "@/components/magicui/shine-border";
 import { useTheme } from "next-themes";
 import React from "react";
+import { useForm } from "react-hook-form";
+import { z } from "zod";
+import { zodResolver } from "@hookform/resolvers/zod";
+import toast from "react-hot-toast";
+
+// Define the schema using Zod
+const signInSchema = z.object({
+  email: z.string().email("Invalid email address"),
+  password: z.string().min(6, "Password must be at least 6 characters long"),
+});
 
 export default function Login(props: { searchParams: Promise<Message> }) {
   const [searchParams, setSearchParams] = React.useState<Message | null>(null);
@@ -28,9 +38,29 @@ export default function Login(props: { searchParams: Promise<Message> }) {
 
   const theme = useTheme();
 
+  // Initialize the form with react-hook-form and zod
+  const { register, handleSubmit, formState: { errors } } = useForm({
+    resolver: zodResolver(signInSchema),
+  });
+
+  const onSubmit = (data: any) => {
+    // Convert the form data to FormData
+    const formData = new FormData();
+    formData.append("email", data.email);
+    formData.append("password", data.password);
+
+    // Handle form submission
+    try {
+      signInAction(formData);
+    } catch (error) {
+      toast.error('Sign in failed');
+      console.error(error);
+    }
+  };
+
   return (
     <Card className="relative overflow-hidden">
-      <ShineBorder shineColor={["#A07CFE", "#FE8FB5", "#FFBE7B"]}  />
+        <ShineBorder shineColor={["#A07CFE", "#FE8FB5", "#FFBE7B"]}  />
       <CardHeader>
         <CardTitle>Login</CardTitle>
         <CardDescription>
@@ -38,10 +68,11 @@ export default function Login(props: { searchParams: Promise<Message> }) {
         </CardDescription>
       </CardHeader>
       <CardContent>
-        <form className="flex-1 flex flex-col min-w-64">
+        <form onSubmit={handleSubmit(onSubmit)} className="flex-1 flex flex-col min-w-64">
           <div className="flex flex-col gap-2 [&>input]:mb-3 mt-8">
             <Label htmlFor="email">Email</Label>
-            <Input name="email" placeholder="you@example.com" required />
+            <Input {...register("email")} placeholder="you@example.com" required />
+            {errors.email && <span>{errors.email.message}</span>}
             <div className="flex justify-between items-center">
               <Label htmlFor="password">Password</Label>
               <Link
@@ -53,10 +84,11 @@ export default function Login(props: { searchParams: Promise<Message> }) {
             </div>
             <Input
               type="password"
-              name="password"
+              {...register("password")}
               placeholder="Your password"
               required
             />
+            {errors.password && <span>{errors.password.message}</span>}
             <SubmitButton pendingText="Signing In..." formAction={signInAction}>
               Sign in
             </SubmitButton>

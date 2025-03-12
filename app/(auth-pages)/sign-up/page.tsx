@@ -18,6 +18,15 @@ import {
 import { ShineBorder } from "@/components/magicui/shine-border";
 import { useTheme } from "next-themes";
 import React from "react";
+import { useForm } from "react-hook-form";
+import { z } from "zod";
+import { zodResolver } from "@hookform/resolvers/zod";
+
+// Define the schema using Zod
+const signUpSchema = z.object({
+  email: z.string().email("Invalid email address"),
+  password: z.string().min(6, "Password must be at least 6 characters long"),
+});
 
 export default function Signup(props: { searchParams: Promise<Message> }) {
   const [searchParams, setSearchParams] = React.useState<Message | null>(null);
@@ -27,6 +36,16 @@ export default function Signup(props: { searchParams: Promise<Message> }) {
   }, [props.searchParams]);
 
   const theme = useTheme();
+
+  // Initialize the form with react-hook-form and zod
+  const { register, handleSubmit, formState: { errors } } = useForm({
+    resolver: zodResolver(signUpSchema),
+  });
+
+  const onSubmit = (data: any) => {
+    // Handle form submission
+    signUpAction(data);
+  };
 
   return (
     <Card className="relative overflow-hidden">
@@ -38,18 +57,19 @@ export default function Signup(props: { searchParams: Promise<Message> }) {
         </CardDescription>
       </CardHeader>
       <CardContent>
-        <form className="flex flex-col min-w-64 max-w-64 mx-auto">
+        <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col min-w-64 max-w-64 mx-auto">
           <div className="flex flex-col gap-2 [&>input]:mb-3 mt-8">
             <Label htmlFor="email">Email</Label>
-            <Input name="email" placeholder="you@example.com" required />
+            <Input {...register("email")} placeholder="you@example.com" required />
+            {errors.email && <span>{errors.email.message}</span>}
             <Label htmlFor="password">Password</Label>
             <Input
               type="password"
-              name="password"
+              {...register("password")}
               placeholder="Your password"
-              minLength={6}
               required
             />
+            {errors.password && <span>{errors.password.message}</span>}
             <SubmitButton formAction={signUpAction} pendingText="Signing up...">
               Sign up
             </SubmitButton>
