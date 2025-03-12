@@ -19,7 +19,7 @@ export const projectApi = {
   },
 
   create: async (project: Omit<Project, 'id' | 'created_at' | 'user_id'>) => {
-    const { data: userData, error: authError } = await supabase.auth.getUser();
+    const { data: userData, error: authError }  = await supabase.auth.getUser();
     if (authError || !userData?.data?.user?.id) throw new Error("User not authenticated");
 
     const { data, error } = await supabase
@@ -50,14 +50,18 @@ export const projectApi = {
 };
 
 export const taskApi = {
+    getAll: async () => {
+        const { data, error } = await supabase.from('tasks').select('*').order('created_at', { ascending: false });
+        if (error) throw error;
+        return data;
+    },
   getByProject: async (projectId: string) => {
     const { data, error } = await supabase.from('tasks').select('*').eq('project_id', projectId).order('created_at', { ascending: false });
     if (error) throw error;
     return data;
   },
 
-  create: async (task: Omit<Task, 'id' | 'created_at'>) => {
-    if (!task.project_id) throw new Error("Missing project ID");
+  create: async (task: Omit<Task, 'id' | 'created_at' | 'project_id'>) => {
     const { data, error } = await supabase.from('tasks').insert(task).select().single();
     if (error) throw error;
     return data;

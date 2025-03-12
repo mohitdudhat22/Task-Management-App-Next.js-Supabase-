@@ -97,54 +97,54 @@ export default function ProjectDetails() {
         ) : tasks.length === 0 ? (
           <p>No tasks found</p>
         ) : (
-          <Table className="mt-4">
-            <TableHeader>
-              <TableRow>
-                <TableHead>Task</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>Actions</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {tasks.map((task) => (
-                <TableRow key={task.id}>
-                  <TableCell>{task.title}</TableCell>
-                  <TableCell>
-                    <Select
-                      value={task.status}
-                      onValueChange={(status) => updateTaskStatusMutation.mutate({ taskId: task.id, status })}
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select Status" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {TASK_STATUSES.map((status) => (
-                          <SelectItem key={status} value={status}>
-                            {status.replace('_', ' ')}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </TableCell>
-                  <TableCell>
-                    <Button
-                      variant="destructive"
-                      onClick={() => taskApi.delete(task.id).then(() => queryClient.invalidateQueries({ queryKey: ['tasks', projectId] }))}
-                    >
-                      Delete
-                    </Button>
-                    <Button
-                      className="ml-4"
-                      variant="outline"
-                      onClick={() => taskApi.updateTask(task.id, task).then(() => queryClient.invalidateQueries({ queryKey: ['tasks', projectId] }))}
-                    >
-                      Update
-                    </Button>
-                  </TableCell>
+            <Table className="mt-4">
+                <TableHeader>
+                <TableRow>
+                    <TableHead>Task</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead>Actions</TableHead>
                 </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+                </TableHeader>
+                <TableBody>
+                {tasks.map((task) => (
+                    <TableRow key={task.id}>
+                    <TableCell>{task.title}</TableCell>
+                    <TableCell>
+                        <Select
+                        value={task.status}
+                        onValueChange={(status) => updateTaskStatusMutation.mutate({ taskId: task.id, status })}
+                        >
+                        <SelectTrigger>
+                            <SelectValue placeholder="Select Status" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            {TASK_STATUSES.map((status) => (
+                            <SelectItem key={status} value={status}>
+                                {status.replace('_', ' ')}
+                            </SelectItem>
+                            ))}
+                        </SelectContent>
+                        </Select>
+                    </TableCell>
+                    <TableCell>
+                        <Button
+                        variant="destructive"
+                        onClick={() => taskApi.delete(task.id).then(() => queryClient.invalidateQueries({ queryKey: ['tasks', projectId] }))}
+                        >
+                        Delete
+                        </Button>
+                        <Button
+                        className="ml-2"
+                        variant="outline"
+                        onClick={() => taskApi.updateTask(task.id, task).then(() => queryClient.invalidateQueries({ queryKey: ['tasks', projectId] }))}
+                        >
+                        Update
+                        </Button>
+                    </TableCell>
+                    </TableRow>
+                ))}
+                </TableBody>
+            </Table>
         )}
       </div>
     </div>
