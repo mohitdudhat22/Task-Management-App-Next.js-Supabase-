@@ -1,39 +1,139 @@
-'use client';
+"use client"
 
-import { useState } from 'react';
-import { useProjects } from '@/app/hooks/useProjects';
-import { ProjectTable } from '@/app/components/ProjectTable';
-import { CreateProjectForm } from '@/app/components/CreateProjectForm';
-import { Button } from '@/components/ui/button';
-import { useTasks } from '@/app/hooks/useTasks';
-import { CreateTaskForm } from '@/app/components/CreateTaskForm';
-import { TaskTable } from '@/app/components/TaskTable';
+import { useState } from "react"
+import { useProjects } from "@/app/hooks/useProjects"
+import { CreateProjectForm } from "@/app/components/CreateProjectForm"
+import { CreateTaskForm } from "@/app/components/CreateTaskForm"
+import { useTasks } from "@/app/hooks/useTasks"
+import { ProjectTable } from "@/app/components/ProjectTable"
+import { TaskTable } from "@/app/components/TaskTable"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Button } from "@/components/ui/button"
+import { PlusCircle, MinusCircle, Layers, CheckSquare } from "lucide-react"
 
 export default function ProjectsPage() {
-    const { projects, createProject, deleteProject } = useProjects();
-    const [showProjectTable, setShowProjectTable] = useState(true);
-    const [showCreateProjectForm, setShowCreateProjectForm] = useState(true);
-    const { tasks, createTask, updateTask, deleteTask } = useTasks();
-    const [showTaskTable, setShowTaskTable] = useState(true);
-    const [showCreateTaskForm, setShowCreateTaskForm] = useState(true);
-    return (
-        <div className="p-8">
-            <Button size="sm" className='ml-4' onClick={() => setShowCreateProjectForm(!showCreateProjectForm)}>
-                Toggle Create Project Form
+  const { projects, createProject, deleteProject } = useProjects()
+  const { tasks, createTask, updateTask, deleteTask } = useTasks()
+  const [showCreateProjectForm, setShowCreateProjectForm] = useState(false)
+  const [showCreateTaskForm, setShowCreateTaskForm] = useState(false)
+
+  return (
+    <div className="container mx-auto py-8 max-w-7xl">
+      <h1 className="text-3xl font-bold mb-6">Project Management Dashboard</h1>
+
+      <Tabs defaultValue="projects" className="w-full">
+        <TabsList className="grid w-full grid-cols-2 mb-8">
+          <TabsTrigger value="projects" className="flex items-center gap-2">
+            <Layers className="h-4 w-4" />
+            Projects
+          </TabsTrigger>
+          <TabsTrigger value="tasks" className="flex items-center gap-2">
+            <CheckSquare className="h-4 w-4" />
+            Tasks
+          </TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="projects" className="space-y-6">
+          <div className="flex justify-end items-center">
+            <Button
+              onClick={() => setShowCreateProjectForm(!showCreateProjectForm)}
+              variant="outline"
+              className="flex items-center gap-2"
+            >
+              {showCreateProjectForm ? (
+                <>
+                  <MinusCircle className="h-4 w-4" />
+                  Hide Form
+                </>
+              ) : (
+                <>
+                  <PlusCircle className="h-4 w-4" />
+                  New Project
+                </>
+              )}
             </Button>
-            <Button size="sm" className='mx-4' onClick={() => setShowProjectTable(!showProjectTable)}>
-                Toggle Project Table
+          </div>
+
+          {showCreateProjectForm && (
+            <Card className="mb-6">
+              <CardHeader>
+                <CardTitle>Create New Project</CardTitle>
+                <CardDescription>Add a new project to your dashboard</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <CreateProjectForm
+                  onCreate={(project) => {
+                    createProject(project)
+                    setShowCreateProjectForm(false)
+                  }}
+                />
+              </CardContent>
+            </Card>
+          )}
+
+          <Card>
+            <CardHeader>
+              <CardTitle>Project List</CardTitle>
+              <CardDescription>Manage your existing projects</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <ProjectTable projects={projects} onDelete={deleteProject} />
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="tasks" className="space-y-6">
+          <div className="flex justify-end items-center">
+            <Button
+              onClick={() => setShowCreateTaskForm(!showCreateTaskForm)}
+              variant="outline"
+              className="flex items-center gap-2"
+            >
+              {showCreateTaskForm ? (
+                <>
+                  <MinusCircle className="h-4 w-4" />
+                  Hide Form
+                </>
+              ) : (
+                <>
+                  <PlusCircle className="h-4 w-4" />
+                  New Task
+                </>
+              )}
             </Button>
-            <Button size="sm" className='ml-4' onClick={() => setShowCreateTaskForm(!showCreateTaskForm)}>
-                Toggle Create Task Form
-            </Button>
-            <Button size="sm" className='mx-4' onClick={() => setShowTaskTable(!showTaskTable)}>
-                Toggle Task Table
-            </Button>
-            {showCreateProjectForm && <CreateProjectForm onCreate={createProject} />}
-            {showProjectTable && <ProjectTable projects={projects} onDelete={deleteProject} />}
-            {showCreateTaskForm && <CreateTaskForm projects={projects} onCreate={createTask} />}
-            {showTaskTable && <TaskTable tasks={tasks} onUpdate={updateTask} onDelete={deleteTask} />}
-        </div>
-    );
+          </div>
+
+          {showCreateTaskForm && (
+            <Card className="mb-6">
+              <CardHeader>
+                <CardTitle>Create New Task</CardTitle>
+                <CardDescription>Add a new task to one of your projects</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <CreateTaskForm
+                  projects={projects}
+                  onCreate={(task) => {
+                    createTask(task)
+                    setShowCreateTaskForm(false)
+                  }}
+                />
+              </CardContent>
+            </Card>
+          )}
+
+          <Card>
+            <CardHeader>
+              <CardTitle>Task List</CardTitle>
+              <CardDescription>Manage your existing tasks</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <TaskTable tasks={tasks} onUpdate={updateTask} onDelete={deleteTask} />
+            </CardContent>
+          </Card>
+        </TabsContent>
+      </Tabs>
+    </div>
+  )
 }
+

@@ -53,7 +53,7 @@ export default function RootLayout({
                       {!hasEnvVars ? <EnvVarWarning /> : <HeaderAuth />}
                     </div>
                   </nav>
-                  <div className="flex flex-col gap-20 max-w-5xl p-5">
+                  <div className="flex flex-col gap-20 max-w-9xl p-5">
                   <Toaster position="top-right" />
                     {children}
                   </div>
