@@ -60,8 +60,8 @@ export const taskApi = {
         if (error) throw error;
         return data;
     },
-  getByProject: async (projectId: string) => {
-    const { data, error } = await supabase.from('tasks').select('*').eq('project_id', projectId).order('created_at', { ascending: false });
+    getByProject: async (projectId: string) => {
+        const { data, error } = await supabase.from('tasks').select('*').eq('project_id', projectId).order('created_at', { ascending: false });
     if (error) throw error;
     return data;
   },
@@ -77,15 +77,14 @@ export const taskApi = {
     const { error } = await supabase.from('tasks').delete().eq('id', id);
     if (error) throw error;
   },
-  updateStatus: async (taskId: string, status: string) => {
+  updateStatus: async (taskId: string, status: "pending" | "in_progress" | "completed") => {
     if (!taskId) throw new Error("Task ID is required");
     const { error } = await supabase.from('tasks').update({ status }).eq('id', taskId);
     if (error) throw error;
   },
-
-  updateTask: async (taskId: string, task: Omit<Task, 'id' | 'created_at'>) => {
+  updateTask: async (taskId: string, title: string) => {
     if (!taskId) throw new Error("Task ID is required");
-    const { error } = await supabase.from('tasks').update(task).eq('id', taskId);
+    const { error } = await supabase.from('tasks').update({ title }).eq('id', taskId);
     if (error) throw error;
   }
 };

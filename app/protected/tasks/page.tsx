@@ -1,11 +1,13 @@
+'use client'
+
 import { TaskTable } from "@/app/components/TaskTable";
 import { useTasks } from "@/app/hooks/useTasks";
 
 export default function TasksPage() {
-  const { tasks, updateTask, deleteTask } = useTasks();
+  const { tasks, updateTask, updateStatus, deleteTask } = useTasks();
     return (
       <>
-         <TaskTable tasks={tasks} onUpdate={updateTask} onDelete={deleteTask} />
+         <TaskTable tasks={tasks} onUpdateTask={updateTask} onUpdateStatus={updateStatus} onDelete={deleteTask} />
       </>
     );
 }

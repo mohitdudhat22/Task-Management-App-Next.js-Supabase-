@@ -43,11 +43,12 @@ interface Task {
 
 interface TaskTableProps {
   tasks: Task[]
-  onUpdate: (task: { id: string; title?: string; status?: "pending" | "in_progress" | "completed" }) => void
+  onUpdateTask: (task: { id: string; title: string; status: "pending" | "in_progress" | "completed" }) => void
+  onUpdateStatus: (task: { id: string; status: "pending" | "in_progress" | "completed" }) => void
   onDelete: (taskId: string) => void
 }
 
-export function TaskTable({ tasks, onUpdate, onDelete }: TaskTableProps) {
+export function TaskTable({ tasks, onUpdateTask, onUpdateStatus, onDelete }: TaskTableProps) {
   const [editingId, setEditingId] = useState<string | null>(null)
   const [editTitle, setEditTitle] = useState("")
   const [searchTerm, setSearchTerm] = useState("")
@@ -97,7 +98,7 @@ export function TaskTable({ tasks, onUpdate, onDelete }: TaskTableProps) {
 
   const saveEditing = (taskId: string) => {
     if (editTitle.trim()) {
-      onUpdate({ id: taskId, title: editTitle })
+      onUpdateTask({ id: taskId, title: editTitle, status: "pending" })
     }
     setEditingId(null)
   }
@@ -308,7 +309,7 @@ export function TaskTable({ tasks, onUpdate, onDelete }: TaskTableProps) {
                       <Select
                         value={task.status}
                         onValueChange={(status: "pending" | "in_progress" | "completed") =>
-                          onUpdate({ id: task.id, status })
+                          onUpdateStatus({ id: task.id, status })
                         }
                       >
                         <SelectTrigger className={`w-[180px] transition-all ${getStatusColor(task.status)}`}>

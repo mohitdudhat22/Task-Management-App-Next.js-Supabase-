@@ -11,10 +11,11 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { PlusCircle, MinusCircle, Layers, CheckSquare } from "lucide-react"
+import { Project } from "@/types/database"
 
 export default function ProjectsPage() {
   const { projects, createProject, deleteProject, updateProject } = useProjects()
-  const { tasks, createTask, updateTask, deleteTask } = useTasks()
+  const { tasks, createTask, updateTask, updateStatus, deleteTask } = useTasks()
   const [showCreateProjectForm, setShowCreateProjectForm] = useState(false)
   const [showCreateTaskForm, setShowCreateTaskForm] = useState(false)
 
@@ -63,8 +64,8 @@ export default function ProjectsPage() {
               </CardHeader>
               <CardContent>
                 <CreateProjectForm
-                  onCreate={(project) => {
-                    createProject(project)
+                  onCreate={(project: Omit<Project, 'id' | 'created_at' | 'user_id' | 'title'>) => {
+                    createProject(project as any  )
                     setShowCreateProjectForm(false)
                   }}
                 />
@@ -78,7 +79,7 @@ export default function ProjectsPage() {
               <CardDescription>Manage your existing projects</CardDescription>
             </CardHeader>
             <CardContent className="w-full max-w-2xl mx-auto">
-              <ProjectTable projects={projects} onDelete={deleteProject} onUpdate={updateProject} />
+              <ProjectTable projects={projects} onDelete={deleteProject} onUpdate={(projectId, updatedProject) => updateProject(projectId as any, updatedProject as any)} />
             </CardContent>
           </Card>
         </TabsContent>
@@ -128,7 +129,7 @@ export default function ProjectsPage() {
               <CardDescription>Manage your existing tasks</CardDescription>
             </CardHeader>
             <CardContent>
-              <TaskTable tasks={tasks} onUpdate={updateTask} onDelete={deleteTask} />
+              <TaskTable tasks={tasks} onUpdateTask={updateTask} onUpdateStatus={updateStatus} onDelete={deleteTask} />
             </CardContent>
           </Card>
         </TabsContent>
