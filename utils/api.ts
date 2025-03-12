@@ -13,18 +13,20 @@ export const userApi = {
 
 export const projectApi = {
   getAll: async () => {
-    const { data, error } = await supabase.from('projects').select('*').order('created_at', { ascending: false });
+    const { data: userData, error: authError }  = await supabase.auth.getUser();
+    if (authError || !userData?.user?.id) throw new Error("User not authenticated");
+    const { data, error } = await supabase.from('projects').select('*').eq('user_id', userData.user.id).order('created_at', { ascending: false });
     if (error) throw error;
     return data;
   },
 
   create: async (project: Omit<Project, 'id' | 'created_at' | 'user_id'>) => {
     const { data: userData, error: authError }  = await supabase.auth.getUser();
-    if (authError || !userData?.data?.user?.id) throw new Error("User not authenticated");
+    if (authError || !userData?.user?.id) throw new Error("User not authenticated");
 
     const { data, error } = await supabase
       .from('projects')
-      .insert({ ...project, user_id: userData.data.user.id })
+      .insert({ ...project, user_id: userData.user.id })
       .select()
       .single();
     
