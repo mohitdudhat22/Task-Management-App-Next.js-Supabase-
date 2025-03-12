@@ -19,7 +19,7 @@ export default function ProjectsPage() {
   const [showCreateTaskForm, setShowCreateTaskForm] = useState(false)
 
   return (
-    <div className="container mx-auto py-8 max-w-7xl">
+    <div className="container mx-auto max-w-7xl">
       <h1 className="text-3xl font-bold mb-6">Project Management Dashboard</h1>
 
       <Tabs defaultValue="projects" className="w-full">
@@ -77,7 +77,7 @@ export default function ProjectsPage() {
               <CardTitle>Project List</CardTitle>
               <CardDescription>Manage your existing projects</CardDescription>
             </CardHeader>
-            <CardContent>
+            <CardContent className="w-full max-w-2xl mx-auto">
               <ProjectTable projects={projects} onDelete={deleteProject} />
             </CardContent>
           </Card>

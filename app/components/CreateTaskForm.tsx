@@ -1,4 +1,6 @@
-import { useState } from 'react';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { z } from 'zod';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -8,33 +10,40 @@ interface CreateTaskFormProps {
     onCreate: (task: { project_id: string; title: string; status: "pending" | "in_progress" | "completed" }) => void;
 }
 
-export function CreateTaskForm({ projects, onCreate }: CreateTaskFormProps) {
-    const [newTask, setNewTask] = useState({project_id: projects[0]?.id || '', title: '', status: 'pending' });
+const taskSchema = z.object({
+    project_id: z.string().min(1, "Project is required"),
+    title: z.string().min(1, "Title is required"),
+    status: z.enum(["pending", "in_progress", "completed"]),
+});
 
-    const handleCreate = () => {
-        console.log(newTask);
-        onCreate({ ...newTask, status: newTask.status as "pending" | "in_progress" | "completed" });
-        setNewTask({  project_id: projects[0]?.id || '', title: '', status: 'pending' });
+export function CreateTaskForm({ projects, onCreate }: CreateTaskFormProps) {
+    const { register, handleSubmit, formState: { errors } } = useForm<z.infer<typeof taskSchema>>({
+        resolver: zodResolver(taskSchema),
+        defaultValues: {
+            project_id: projects[0]?.id || '',
+            title: '',
+            status: 'pending',
+        }
+    });
+
+    const onSubmit = (data: z.infer<typeof taskSchema>) => {
+        onCreate(data);
     };
 
     return (
-        <div className="mb-8 p-4 border rounded-md">
+        <form onSubmit={handleSubmit(onSubmit)} className="mb-8 p-4 border rounded-md">
             <h2 className="text-lg font-semibold mb-4">Create New Task</h2>
             <div className="space-y-4">
                 <div>
                     <Label htmlFor="title">Task Title</Label>
-                    <Input
-                        id="title"
-                        value={newTask.title}
-                        onChange={e => setNewTask(prev => ({ ...prev, title: e.target.value }))}
-                    />
+                    <Input id="title" {...register('title')} />
+                    {errors.title && <p className="text-red-500">{errors.title.message}</p>}
                 </div>
                 <div>
                     <Label htmlFor="project">Assign to Project</Label>
                     <select
                         id="project"
-                        value={newTask.project_id}
-                        onChange={e => setNewTask(prev => ({ ...prev, project_id: e.target.value }))}
+                        {...register('project_id')}
                         className="w-full p-2 border rounded"
                     >
                         {projects.map(project => (
@@ -43,11 +52,12 @@ export function CreateTaskForm({ projects, onCreate }: CreateTaskFormProps) {
                             </option>
                         ))}
                     </select>
+                    {errors.project_id && <p className="text-red-500">{errors.project_id.message}</p>}
                 </div>
-                <Button onClick={handleCreate} disabled={!newTask.project_id}>
+                <Button type="submit" disabled={!projects.length}>
                     Create Task
                 </Button>
             </div>
-        </div>
+        </form>
     );
 } 
