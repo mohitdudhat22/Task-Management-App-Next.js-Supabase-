@@ -5,33 +5,18 @@ const supabase = createClient();
 
 export const projectApi = {
   getAll: async () => {
-    const { data, error } = await supabase
-      .from('projects')
-      .select('*')
-      .order('created_at', { ascending: false });
-    
+    const { data, error } = await supabase.from('projects').select('*').order('created_at', { ascending: false });
     if (error) throw error;
     return data;
   },
 
   create: async (project: Omit<Project, 'id' | 'created_at' | 'user_id'>) => {
-    const userData = await supabase.auth.getUser();
-    if (!userData) throw new Error("User not authenticated");
-    const { data, error } = await supabase
-      .from('projects')
-      .insert({...project, user_id: userData?.data?.user?.id})
-      .select()
-      .single();
-    console.log(data,"<<<<<<<<<<<<<<<<<<<<<",error);
-    if (error) throw error;
-    return data;
-  },
+    const { data: userData, error: authError } = await supabase.auth.getUser();
+    if (authError || !userData?.data?.user?.id) throw new Error("User not authenticated");
 
-  update: async (id: string, project: Partial<Project>) => {
     const { data, error } = await supabase
       .from('projects')
-      .update(project)
-      .eq('id', id)
+      .insert({ ...project, user_id: userData.data.user.id })
       .select()
       .single();
     
@@ -39,57 +24,51 @@ export const projectApi = {
     return data;
   },
 
-  delete: async (id: string) => {
-    const { error } = await supabase
-      .from('projects')
-      .delete()
-      .eq('id', id);
-    
+  getById: async (projectId: string) => {
+    const { data, error } = await supabase.from('projects').select('*').eq('id', projectId).single();
+    if (error) throw error;
+    return data;
+  },
+
+  delete: async (projectId: string) => {
+    const { error } = await supabase.from('projects').delete().eq('id', projectId);
+    if (error) throw error;
+  },
+
+  update: async (projectId: string, project: Omit<Project, 'id' | 'created_at' | 'user_id'>) => {
+    const { error } = await supabase.from('projects').update(project).eq('id', projectId);
     if (error) throw error;
   }
 };
 
 export const taskApi = {
   getByProject: async (projectId: string) => {
-    const { data, error } = await supabase
-      .from('tasks')
-      .select('*')
-      .eq('project_id', projectId)
-      .order('created_at', { ascending: false });
-    
+    const { data, error } = await supabase.from('tasks').select('*').eq('project_id', projectId).order('created_at', { ascending: false });
     if (error) throw error;
     return data;
   },
 
   create: async (task: Omit<Task, 'id' | 'created_at'>) => {
-    const { data, error } = await supabase
-      .from('tasks')
-      .insert(task)
-      .select()
-      .single();
-    
-    if (error) throw error;
-    return data;
-  },
-
-  update: async (id: string, task: Partial<Task>) => {
-    const { data, error } = await supabase
-      .from('tasks')
-      .update(task)
-      .eq('id', id)
-      .select()
-      .single();
-    
+    if (!task.project_id) throw new Error("Missing project ID");
+    const { data, error } = await supabase.from('tasks').insert(task).select().single();
     if (error) throw error;
     return data;
   },
 
   delete: async (id: string) => {
-    const { error } = await supabase
-      .from('tasks')
-      .delete()
-      .eq('id', id);
-    
+    if (!id) throw new Error("Task ID is required");
+    const { error } = await supabase.from('tasks').delete().eq('id', id);
+    if (error) throw error;
+  },
+  updateStatus: async (taskId: string, status: string) => {
+    if (!taskId) throw new Error("Task ID is required");
+    const { error } = await supabase.from('tasks').update({ status }).eq('id', taskId);
+    if (error) throw error;
+  },
+
+  updateTask: async (taskId: string, task: Omit<Task, 'id' | 'created_at'>) => {
+    if (!taskId) throw new Error("Task ID is required");
+    const { error } = await supabase.from('tasks').update(task).eq('id', taskId);
     if (error) throw error;
   }
-}; 
+};

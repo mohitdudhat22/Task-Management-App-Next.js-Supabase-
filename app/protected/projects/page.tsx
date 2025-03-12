@@ -1,13 +1,7 @@
 'use client';
 
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import {
-  createColumnHelper,
-  flexRender,
-  getCoreRowModel,
-  useReactTable,
-} from '@tanstack/react-table';
-import { Project } from '@/types/database';
+import { useRouter } from 'next/navigation';
 import { projectApi } from '@/utils/api';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -16,6 +10,7 @@ import { Label } from '@/components/ui/label';
 
 export default function ProjectsPage() {
   const queryClient = useQueryClient();
+  const router = useRouter();
   const [newProject, setNewProject] = useState({ name: '', description: '' });
 
   const { data: projects = [] } = useQuery({
@@ -36,40 +31,6 @@ export default function ProjectsPage() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['projects'] });
     }
-  });
-
-  const columnHelper = createColumnHelper<Project>();
-  const columns = [
-    columnHelper.accessor('name', {
-      header: 'Name',
-      cell: info => info.getValue()
-    }),
-    columnHelper.accessor('description', {
-      header: 'Description',
-      cell: info => info.getValue() || '-'
-    }),
-    columnHelper.accessor('created_at', {
-      header: 'Created At',
-      cell: info => new Date(info.getValue()).toLocaleDateString()
-    }),
-    columnHelper.display({
-      id: 'actions',
-      cell: props => (
-        <Button
-          variant="destructive"
-          size="sm"
-          onClick={() => deleteMutation.mutate(props.row.original.id)}
-        >
-          Delete
-        </Button>
-      )
-    })
-  ];
-
-  const table = useReactTable({
-    data: projects,
-    columns,
-    getCoreRowModel: getCoreRowModel()
   });
 
   return (
@@ -95,10 +56,7 @@ export default function ProjectsPage() {
               onChange={e => setNewProject(prev => ({ ...prev, description: e.target.value }))}
             />
           </div>
-          <Button
-            onClick={() => createMutation.mutate(newProject)}
-            disabled={!newProject.name}
-          >
+          <Button onClick={() => createMutation.mutate(newProject)} disabled={!newProject.name}>
             Create Project
           </Button>
         </div>
@@ -107,27 +65,25 @@ export default function ProjectsPage() {
       <div className="border rounded-md">
         <table className="w-full">
           <thead>
-            {table.getHeaderGroups().map(headerGroup => (
-              <tr key={headerGroup.id}>
-                {headerGroup.headers.map(header => (
-                  <th key={header.id} className="p-4 text-left border-b">
-                    {flexRender(
-                      header.column.columnDef.header,
-                      header.getContext()
-                    )}
-                  </th>
-                ))}
-              </tr>
-            ))}
+            <tr>
+              <th className="p-4 text-left border-b">Name</th>
+              <th className="p-4 text-left border-b">Description</th>
+              <th className="p-4 text-left border-b">Actions</th>
+            </tr>
           </thead>
           <tbody>
-            {table.getRowModel().rows.map(row => (
-              <tr key={row.id}>
-                {row.getVisibleCells().map(cell => (
-                  <td key={cell.id} className="p-4 border-b">
-                    {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                  </td>
-                ))}
+            {projects.map(project => (
+              <tr key={project.id}>
+                <td className="p-4 border-b">{project.name}</td>
+                <td className="p-4 border-b">{project.description || '-'}</td>
+                <td className="p-4 border-b space-x-2">
+                  <Button size="sm" onClick={() => router.push(`/protected/projects/${project.id}`)}>
+                    Manage Tasks
+                  </Button>
+                  <Button size="sm" variant="destructive" onClick={() => deleteMutation.mutate(project.id)}>
+                    Delete
+                  </Button>
+                </td>
               </tr>
             ))}
           </tbody>
@@ -135,4 +91,4 @@ export default function ProjectsPage() {
       </div>
     </div>
   );
-} 
+}
