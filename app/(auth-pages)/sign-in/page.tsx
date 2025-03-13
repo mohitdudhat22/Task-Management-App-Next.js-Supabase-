@@ -1,5 +1,11 @@
 "use client";
 
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+import { useForm } from "react-hook-form";
+import { z } from "zod";
+import { zodResolver } from "@hookform/resolvers/zod";
+import toast from "react-hot-toast";
 import { signInAction } from "@/app/actions";
 import { FormMessage, Message } from "@/components/form-message";
 import { SubmitButton } from "@/components/submit-button";
@@ -17,12 +23,6 @@ import {
 } from "@/components/ui/card";
 import { ShineBorder } from "@/components/magicui/shine-border";
 import { useTheme } from "next-themes";
-import React, { useEffect } from "react";
-import { useForm } from "react-hook-form";
-import { z } from "zod";
-import { zodResolver } from "@hookform/resolvers/zod";
-import toast from "react-hot-toast";
-import { useRouter } from "next/navigation";
 
 // Define the schema using Zod
 const signInSchema = z.object({
@@ -30,30 +30,31 @@ const signInSchema = z.object({
   password: z.string().min(6, "Password must be at least 6 characters long"),
 });
 
-export default function Login({ 
-  searchParams 
-}: { 
-  searchParams: { redirect?: string; message?: string } 
+export default function Login({
+  searchParams,
+}: {
+  searchParams: Promise<{ redirect?: string; message?: string }>;
 }) {
-  const [isLoading, setIsLoading] = React.useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [redirectPath, setRedirectPath] = useState("/projects");
   const router = useRouter();
-  
-  // Use state to store the redirect path
-  const [redirectPath, setRedirectPath] = React.useState('/projects');
-  
-  // Set the redirect path from searchParams on mount
-  useEffect(() => {
-    if (searchParams?.redirect) {
-      setRedirectPath(searchParams.redirect);
-    }
-    console.log("Redirect path from params:", searchParams?.redirect);
-    console.log("Final redirect path:", redirectPath);
-  }, [searchParams]);
-
   const theme = useTheme();
 
-  // Initialize the form with react-hook-form and zod
-  const { register, handleSubmit, formState: { errors } } = useForm({
+  useEffect(() => {
+    searchParams.then((params) => {
+      if (params.redirect) {
+        setRedirectPath(params.redirect);
+      }
+      console.log("Redirect path from params:", params.redirect);
+      console.log("Final redirect path:", redirectPath);
+    });
+  }, [searchParams]);
+
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = useForm({
     resolver: zodResolver(signInSchema),
   });
 
@@ -61,26 +62,25 @@ export default function Login({
     setIsLoading(true);
     try {
       console.log("Starting sign in with redirect to:", redirectPath);
-      
+
       const formData = new FormData();
-      formData.append('email', data.email);
-      formData.append('password', data.password);
-      formData.append('redirectTo', redirectPath);
-      
+      formData.append("email", data.email);
+      formData.append("password", data.password);
+      formData.append("redirectTo", redirectPath);
+
       const result = await signInAction(formData);
       console.log("Sign in result:", result);
-      
+
       if (result.success) {
         toast.success(result.message);
         console.log("Redirecting to:", result.redirect || redirectPath);
-        
-        // Force a hard navigation instead of client-side routing
+
         window.location.href = result.redirect || redirectPath;
       } else {
         toast.error(result.message);
       }
     } catch (error) {
-      toast.error('Sign in failed');
+      toast.error("Sign in failed");
       console.error("Sign in error:", error);
     } finally {
       setIsLoading(false);
@@ -97,10 +97,17 @@ export default function Login({
         </CardDescription>
       </CardHeader>
       <CardContent>
-        <form onSubmit={handleSubmit(onSubmit)} className="flex-1 flex flex-col min-w-64">
+        <form
+          onSubmit={handleSubmit(onSubmit)}
+          className="flex-1 flex flex-col min-w-64"
+        >
           <div className="flex flex-col gap-2 [&>input]:mb-3 mt-8">
             <Label htmlFor="email">Email</Label>
-            <Input {...register("email")} placeholder="you@example.com" required />
+            <Input
+              {...register("email")}
+              placeholder="you@example.com"
+              required
+            />
             {errors.email && <span>{errors.email.message}</span>}
             <div className="flex justify-between items-center">
               <Label htmlFor="password">Password</Label>
@@ -131,7 +138,10 @@ export default function Login({
       <CardFooter>
         <p className="text-sm text-foreground">
           Don't have an account?{" "}
-          <Link className="text-foreground font-medium underline" href="/sign-up">
+          <Link
+            className="text-foreground font-medium underline"
+            href="/sign-up"
+          >
             Sign up
           </Link>
         </p>

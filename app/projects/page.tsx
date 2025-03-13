@@ -137,8 +137,8 @@ export default function ProjectsPage() {
                 <CreateTaskForm
                   projects={projects}
                   onCreate={async (task) => {
-                    await createTask(task as any);
-                    setShowCreateTaskForm(false);
+                    await createTask(task as any)
+                    setShowCreateTaskForm(false)
                   }}
                 />
               </CardContent>
