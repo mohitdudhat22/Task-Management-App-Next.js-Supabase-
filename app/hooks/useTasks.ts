@@ -65,10 +65,14 @@ export function useTasks() {
         }
     });
 
-    const getTasksByProject = (projectId: string) => {
-        console.log('getTasksByProject', projectId);
-        return taskApi.getByProject(projectId);
-    }
+    // New function that returns a hook for project tasks
+    const useProjectTasks = (projectId: string | undefined) => {
+        return useQuery<Task[]>({
+            queryKey: ['tasks', 'project', projectId],
+            queryFn: () => projectId ? taskApi.getByProject(projectId) : Promise.resolve([]),
+            enabled: !!projectId,
+        });
+    };
 
     return {
         tasks,
@@ -81,6 +85,6 @@ export function useTasks() {
         isUpdatingStatus: updateStatusMutation.isPending,
         deleteTask: deleteMutation.mutate,
         isDeleting: deleteMutation.isPending,
-        getTasksByProject
+        useProjectTasks, // Export the new hook
     };
 } 

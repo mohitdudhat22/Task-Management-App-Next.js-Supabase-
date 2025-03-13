@@ -1,6 +1,6 @@
 export interface Project {
-  id: string;
-  title: string;
+  id?: string;
+  name: string;
   description: string | null;
   user_id: string;
   created_at: string;

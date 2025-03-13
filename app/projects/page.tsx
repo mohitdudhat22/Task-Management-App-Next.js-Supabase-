@@ -35,6 +35,7 @@ export default function ProjectsPage() {
   const [showCreateTaskForm, setShowCreateTaskForm] = useState(false)
 
   return (
+    <>
     <div className="container mx-auto max-w-7xl">
       <h1 className="text-3xl font-bold mb-6">Project Management Dashboard</h1>
 
@@ -98,8 +99,8 @@ export default function ProjectsPage() {
                 projects={projects} 
                 isLoading={isProjectsLoading}
                 onDelete={deleteProject} 
-                onUpdate={(projectId, updatedProject) => {
-                  updateProject(projectId as any, updatedProject as any)
+                onUpdate={({ projectId, project }) => {
+                  updateProject({ projectId, project });
                 }} 
               />
             </CardContent>
@@ -163,6 +164,7 @@ export default function ProjectsPage() {
         </TabsContent>
       </Tabs>
     </div>
+    </>
   )
 }
 

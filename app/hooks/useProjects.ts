@@ -33,8 +33,8 @@ export function useProjects() {
     });
 
     const updateMutation = useMutation({
-        mutationFn: (project: { id: string; title: string; description: string }) => 
-            projectApi.update(project.id, { title: project.title, description: project.description }),
+        mutationFn: ({ projectId, project }: { projectId: string; project: { name: string; description: string } }) => 
+            projectApi.update(projectId, { name: project.name, description: project.description }),
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['projects'] });
             toast.success('Project updated successfully');

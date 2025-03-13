@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect, useRef, type KeyboardEvent } from "react"
+import { useState, useEffect, useRef, type KeyboardEvent, useMemo } from "react"
 import { Button } from "@/components/ui/button"
 import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from "@/components/ui/table"
 import { Input } from "@/components/ui/input"
@@ -55,22 +55,23 @@ export function TaskTable({ tasks, isLoading = false, onUpdateTask, onUpdateStat
   const [editTitle, setEditTitle] = useState("")
   const [searchTerm, setSearchTerm] = useState("")
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc")
-  const [filteredTasks, setFilteredTasks] = useState<Task[]>(tasks)
   const [statusFilter, setStatusFilter] = useState<string | null>(null)
   const inputRef = useRef<HTMLInputElement>(null)
-  
+
   // Add loading states for individual operations
   const [updatingTaskId, setUpdatingTaskId] = useState<string | null>(null)
   const [updatingStatusId, setUpdatingStatusId] = useState<string | null>(null)
   const [deletingTaskId, setDeletingTaskId] = useState<string | null>(null)
 
-  // Update filtered tasks when tasks, search term, or filters change
-  useEffect(() => {
+  // Add this computed value
+  const filteredAndSortedTasks = useMemo(() => {
     let result = [...tasks]
 
     // Apply search filter
     if (searchTerm) {
-      result = result.filter((task) => task.title.toLowerCase().includes(searchTerm.toLowerCase()))
+      result = result.filter((task) =>
+        task.title.toLowerCase().includes(searchTerm.toLowerCase())
+      )
     }
 
     // Apply status filter
@@ -79,15 +80,13 @@ export function TaskTable({ tasks, isLoading = false, onUpdateTask, onUpdateStat
     }
 
     // Apply sorting
-    result.sort((a, b) => {
+    return result.sort((a, b) => {
       if (sortDirection === "asc") {
         return a.title.localeCompare(b.title)
       } else {
         return b.title.localeCompare(a.title)
       }
     })
-
-    setFilteredTasks(result)
   }, [tasks, searchTerm, sortDirection, statusFilter])
 
   const startEditing = (task: Task) => {
@@ -275,12 +274,11 @@ export function TaskTable({ tasks, isLoading = false, onUpdateTask, onUpdateStat
                 <TableRow>
                   <TableCell colSpan={3} className="h-32 text-center">
                     <div className="flex flex-col items-center justify-center text-muted-foreground">
-                      <LoadingSpinner size={40} className="mb-2 opacity-50" />
-                      <p>Loading tasks...</p>
+                      <LoadingSpinner size={16} />
                     </div>
                   </TableCell>
                 </TableRow>
-              ) : filteredTasks.length === 0 ? (
+              ) : filteredAndSortedTasks.length === 0 ? (
                 <TableRow>
                   <TableCell colSpan={3} className="h-32 text-center">
                     <div className="flex flex-col items-center justify-center text-muted-foreground">
@@ -299,7 +297,7 @@ export function TaskTable({ tasks, isLoading = false, onUpdateTask, onUpdateStat
                   </TableCell>
                 </TableRow>
               ) : (
-                filteredTasks.map((task) => (
+                filteredAndSortedTasks.map((task) => (
                   <motion.tr
                     key={task.id}
                     initial={{ opacity: 0, y: 5 }}
@@ -340,9 +338,8 @@ export function TaskTable({ tasks, isLoading = false, onUpdateTask, onUpdateStat
                         </div>
                       ) : (
                         <div
-                          className={`cursor-pointer rounded px-2 py-1 -mx-2 -my-1 transition-colors ${
-                            task.status === "completed" ? "line-through text-muted-foreground" : ""
-                          }`}
+                          className={`cursor-pointer rounded px-2 py-1 -mx-2 -my-1 transition-colors ${task.status === "completed" ? "line-through text-muted-foreground" : ""
+                            }`}
                           onClick={() => startEditing(task)}
                         >
                           {task.title}
@@ -352,7 +349,7 @@ export function TaskTable({ tasks, isLoading = false, onUpdateTask, onUpdateStat
                     <TableCell>
                       <Select
                         value={task.status}
-                        onValueChange={(value) => 
+                        onValueChange={(value) =>
                           handleStatusChange(task.id, value as "pending" | "in_progress" | "completed")
                         }
                         disabled={updatingStatusId === task.id}

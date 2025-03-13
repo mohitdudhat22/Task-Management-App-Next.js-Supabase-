@@ -31,7 +31,7 @@ interface ProjectTableProps {
   projects: Project[];
   isLoading?: boolean;
   onDelete: (projectId: string) => void;
-  onUpdate: (projectId: string, updatedProject: Project) => void;
+  onUpdate: ({ projectId, project }: { projectId: string; project: { name: string; description: string } }) => void;
 }
 
 export function ProjectTable({ projects, isLoading = false, onDelete, onUpdate }: ProjectTableProps) {
@@ -66,7 +66,15 @@ export function ProjectTable({ projects, isLoading = false, onDelete, onUpdate }
   const saveEditing = async (projectId: string) => {
     setUpdatingProjectId(projectId);
     try {
-      await onUpdate(projectId, { id: projectId, ...editData });
+      await onUpdate({ 
+        projectId, 
+        project: { 
+          name: editData.name, 
+          description: editData.description 
+        } 
+      });
+    } catch (error) {
+      console.error('Error updating project:', error);
     } finally {
       setUpdatingProjectId(null);
       setEditingId(null);
