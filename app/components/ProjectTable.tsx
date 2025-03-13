@@ -17,8 +17,9 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import { Edit2, Save, Trash2, FileText, Search, SortAsc, SortDesc, X } from 'lucide-react';
+import { Edit2, Save, Trash2, FileText, Search, SortAsc, SortDesc, X, Info } from 'lucide-react';
 import { Badge } from "@/components/ui/badge";
+import { LoadingSpinner } from '@/app/components/LoadingSpinner';
 
 interface Project {
   id: string;
@@ -40,6 +41,11 @@ export function ProjectTable({ projects, isLoading = false, onDelete, onUpdate }
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc");
   const [filteredProjects, setFilteredProjects] = useState<Project[]>(projects);
   const [editData, setEditData] = useState<{ name: string; description: string }>({ name: '', description: '' });
+  
+  // Add loading states for individual operations
+  const [updatingProjectId, setUpdatingProjectId] = useState<string | null>(null);
+  const [deletingProjectId, setDeletingProjectId] = useState<string | null>(null);
+  const [navigatingToTasksId, setNavigatingToTasksId] = useState<string | null>(null);
 
   useEffect(() => {
     let result = [...projects];
@@ -57,9 +63,32 @@ export function ProjectTable({ projects, isLoading = false, onDelete, onUpdate }
 
   const cancelEditing = () => setEditingId(null);
 
-  const saveEditing = (projectId: string) => {
-    onUpdate(projectId, { id: projectId, ...editData });
-    setEditingId(null);
+  const saveEditing = async (projectId: string) => {
+    setUpdatingProjectId(projectId);
+    try {
+      await onUpdate(projectId, { id: projectId, ...editData });
+    } finally {
+      setUpdatingProjectId(null);
+      setEditingId(null);
+    }
+  };
+
+  const handleDelete = async (projectId: string) => {
+    setDeletingProjectId(projectId);
+    try {
+      await onDelete(projectId);
+    } finally {
+      setDeletingProjectId(null);
+    }
+  };
+
+  const navigateToTasks = async (projectId: string) => {
+    setNavigatingToTasksId(projectId);
+    try {
+      router.push(`/tasks/${projectId}`);
+    } catch (error) {
+      setNavigatingToTasksId(null);
+    }
   };
 
   const toggleSort = () => setSortDirection(sortDirection === "asc" ? "desc" : "asc");
@@ -94,10 +123,31 @@ export function ProjectTable({ projects, isLoading = false, onDelete, onUpdate }
             </TableRow>
           </TableHeader>
           <TableBody>
-            {filteredProjects.length === 0 ? (
+            {isLoading ? (
               <TableRow>
-                <TableCell colSpan={3} className="h-24 text-center text-muted-foreground">
-                  No projects found. Create your first project to get started.
+                <TableCell colSpan={3} className="h-32 text-center">
+                  <div className="flex flex-col items-center justify-center text-muted-foreground">
+                    <LoadingSpinner size={40} className="mb-2 opacity-50" />
+                    <p>Loading projects...</p>
+                  </div>
+                </TableCell>
+              </TableRow>
+            ) : filteredProjects.length === 0 ? (
+              <TableRow>
+                <TableCell colSpan={3} className="h-24 text-center">
+                  <div className="flex flex-col items-center justify-center text-muted-foreground">
+                    <Info className="h-10 w-10 mb-2 opacity-20" />
+                    {projects.length === 0 ? (
+                      <p>No projects found. Create your first project to get started.</p>
+                    ) : (
+                      <p>No projects match your search.</p>
+                    )}
+                    {searchTerm && (
+                      <Button variant="link" onClick={() => setSearchTerm("")} className="mt-2">
+                        Clear search
+                      </Button>
+                    )}
+                  </div>
                 </TableCell>
               </TableRow>
             ) : (
@@ -105,7 +155,10 @@ export function ProjectTable({ projects, isLoading = false, onDelete, onUpdate }
                 <TableRow key={project.id} className="hover:bg-muted/30">
                   <TableCell>
                     {editingId === project.id ? (
-                      <Input value={editData.name} onChange={(e) => setEditData({ ...editData, name: e.target.value })} />
+                      <Input 
+                        value={editData.name} 
+                        onChange={(e) => setEditData({ ...editData, name: e.target.value })} 
+                      />
                     ) : (
                       <div className="flex items-center gap-2">
                         <Badge variant="outline" className="bg-primary/10"> <FileText className="h-3 w-3 mr-1" /> Project </Badge>
@@ -115,7 +168,10 @@ export function ProjectTable({ projects, isLoading = false, onDelete, onUpdate }
                   </TableCell>
                   <TableCell>
                     {editingId === project.id ? (
-                      <Textarea value={editData.description} onChange={(e) => setEditData({ ...editData, description: e.target.value })} />
+                      <Textarea 
+                        value={editData.description} 
+                        onChange={(e) => setEditData({ ...editData, description: e.target.value })} 
+                      />
                     ) : (
                       <span className="text-muted-foreground">{project.description || 'No description provided'}</span>
                     )}
@@ -124,27 +180,60 @@ export function ProjectTable({ projects, isLoading = false, onDelete, onUpdate }
                     <div className="flex justify-end gap-2">
                       {editingId === project.id ? (
                         <>
-                          <Button size="sm" onClick={() => saveEditing(project.id)} className="h-8 px-3">
-                            <Save className="h-4 w-4 mr-1" /> Save
+                          <Button 
+                            size="sm" 
+                            onClick={() => saveEditing(project.id)} 
+                            className="h-8 px-3"
+                            disabled={updatingProjectId === project.id}
+                          >
+                            {updatingProjectId === project.id ? (
+                              <>
+                                <LoadingSpinner size={16} className="mr-1" /> Saving...
+                              </>
+                            ) : (
+                              <>
+                                <Save className="h-4 w-4 mr-1" /> Save
+                              </>
+                            )}
                           </Button>
                           <Button size="sm" variant="outline" onClick={cancelEditing} className="h-8 px-2">Cancel</Button>
                         </>
                       ) : (
                         <>
-                        <Button 
+                          <Button 
                             size="sm" 
-                            onClick={() => router.push(`/tasks/${project.id}`)}
+                            onClick={() => navigateToTasks(project.id)}
                             className="h-8 px-2"
+                            disabled={navigatingToTasksId === project.id}
                           >
-                            Tasks
+                            {navigatingToTasksId === project.id ? (
+                              <LoadingSpinner size={16} />
+                            ) : (
+                              "Tasks"
+                            )}
                           </Button>
-                          <Button size="sm" variant="outline" onClick={() => startEditing(project)} className="h-8 px-2">
+                          <Button 
+                            size="sm" 
+                            variant="outline" 
+                            onClick={() => startEditing(project)} 
+                            className="h-8 px-2"
+                            disabled={!!editingId}
+                          >
                             <Edit2 className="h-4 w-4 mr-1" /> Edit
                           </Button>
                           <AlertDialog>
                             <AlertDialogTrigger asChild>
-                              <Button size="sm" variant="destructive" className="h-8 px-2">
-                                <Trash2 className="h-4 w-4" />
+                              <Button 
+                                size="sm" 
+                                variant="destructive" 
+                                className="h-8 px-2"
+                                disabled={deletingProjectId === project.id}
+                              >
+                                {deletingProjectId === project.id ? (
+                                  <LoadingSpinner size={16} />
+                                ) : (
+                                  <Trash2 className="h-4 w-4" />
+                                )}
                               </Button>
                             </AlertDialogTrigger>
                             <AlertDialogContent>
@@ -154,7 +243,7 @@ export function ProjectTable({ projects, isLoading = false, onDelete, onUpdate }
                               </AlertDialogHeader>
                               <AlertDialogFooter>
                                 <AlertDialogCancel>Cancel</AlertDialogCancel>
-                                <AlertDialogAction onClick={() => onDelete(project.id)}>Delete</AlertDialogAction>
+                                <AlertDialogAction onClick={() => handleDelete(project.id)}>Delete</AlertDialogAction>
                               </AlertDialogFooter>
                             </AlertDialogContent>
                           </AlertDialog>

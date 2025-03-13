@@ -4,41 +4,68 @@ import { z } from 'zod';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
 import { LoadingSpinner } from '@/app/components/LoadingSpinner';
+import { useState } from 'react';
 
 interface CreateProjectFormProps {
-    onCreate: (project: { name: string; description: string }) => void;
+    onCreate: (project: { name: string; description: string }) => Promise<void>;
+    isLoading?: boolean;
 }
 
 const projectSchema = z.object({
     name: z.string().min(1, "Name is required"),
-    description: z.string().min(1, "Description is required"),
+    description: z.string().optional(),
 });
 
-export function CreateProjectForm({ onCreate, isLoading }: CreateProjectFormProps & { isLoading?: boolean }) {
-    const { register, handleSubmit, formState: { errors } } = useForm({
+export function CreateProjectForm({ onCreate, isLoading: externalLoading }: CreateProjectFormProps) {
+    const [internalLoading, setInternalLoading] = useState(false);
+    const isLoading = externalLoading || internalLoading;
+    
+    const { register, handleSubmit, formState: { errors }, reset } = useForm({
         resolver: zodResolver(projectSchema),
+        defaultValues: {
+            name: '',
+            description: '',
+        }
     });
 
-    const onSubmit = (data: { name: string; description: string }) => {
-        onCreate(data);
+    const onSubmit = async (data: z.infer<typeof projectSchema>) => {
+        setInternalLoading(true);
+        try {
+            await onCreate(data);
+            reset(); // Reset form after successful creation
+        } finally {
+            setInternalLoading(false);
+        }
     };
 
     return (
-        <form onSubmit={handleSubmit(onSubmit)} className="mb-8 p-4 border rounded-md">
-            <h2 className="text-lg font-semibold mb-4">Create New Project</h2>
+        <form onSubmit={handleSubmit(onSubmit)} className="mb-8 p-4 border rounded-md shadow-sm">
             <div className="space-y-4">
                 <div>
-                    <Label htmlFor="name">Name</Label>
-                    <Input id="name" {...register('name')} />
-                    {errors.name && <p className="text-red-500">{errors.name.message}</p>}
+                    <Label htmlFor="name">Project Name</Label>
+                    <Input 
+                        id="name" 
+                        {...register('name')} 
+                        placeholder="Enter project name"
+                        disabled={isLoading}
+                    />
+                    {errors.name && <p className="text-destructive text-sm mt-1">{errors.name.message}</p>}
                 </div>
                 <div>
-                    <Label htmlFor="description">Description</Label>
-                    <Input id="description" {...register('description')} />
-                    {errors.description && <p className="text-red-500">{errors.description.message}</p>}
+                    <Label htmlFor="description">Description (optional)</Label>
+                    <Textarea 
+                        id="description" 
+                        {...register('description')} 
+                        placeholder="Enter project description"
+                        className="resize-none"
+                        rows={3}
+                        disabled={isLoading}
+                    />
+                    {errors.description && <p className="text-destructive text-sm mt-1">{errors.description.message}</p>}
                 </div>
-                <Button type="submit" disabled={isLoading}>
+                <Button type="submit" disabled={isLoading} className="w-full sm:w-auto">
                     {isLoading ? (
                         <>
                             <LoadingSpinner size={16} className="mr-2" />

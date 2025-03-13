@@ -58,6 +58,11 @@ export function TaskTable({ tasks, isLoading = false, onUpdateTask, onUpdateStat
   const [filteredTasks, setFilteredTasks] = useState<Task[]>(tasks)
   const [statusFilter, setStatusFilter] = useState<string | null>(null)
   const inputRef = useRef<HTMLInputElement>(null)
+  
+  // Add loading states for individual operations
+  const [updatingTaskId, setUpdatingTaskId] = useState<string | null>(null)
+  const [updatingStatusId, setUpdatingStatusId] = useState<string | null>(null)
+  const [deletingTaskId, setDeletingTaskId] = useState<string | null>(null)
 
   // Update filtered tasks when tasks, search term, or filters change
   useEffect(() => {
@@ -98,11 +103,34 @@ export function TaskTable({ tasks, isLoading = false, onUpdateTask, onUpdateStat
     setEditingId(null)
   }
 
-  const saveEditing = (taskId: string) => {
+  const saveEditing = async (taskId: string) => {
     if (editTitle.trim()) {
-      onUpdateTask({ id: taskId, title: editTitle, status: "pending" })
+      setUpdatingTaskId(taskId)
+      try {
+        await onUpdateTask({ id: taskId, title: editTitle, status: "pending" })
+      } finally {
+        setUpdatingTaskId(null)
+        setEditingId(null)
+      }
     }
-    setEditingId(null)
+  }
+
+  const handleStatusChange = async (taskId: string, newStatus: "pending" | "in_progress" | "completed") => {
+    setUpdatingStatusId(taskId)
+    try {
+      await onUpdateStatus({ id: taskId, status: newStatus })
+    } finally {
+      setUpdatingStatusId(null)
+    }
+  }
+
+  const handleDelete = async (taskId: string) => {
+    setDeletingTaskId(taskId)
+    try {
+      await onDelete(taskId)
+    } finally {
+      setDeletingTaskId(null)
+    }
   }
 
   const handleKeyDown = (e: KeyboardEvent<HTMLInputElement>, taskId: string) => {
@@ -300,8 +328,13 @@ export function TaskTable({ tasks, isLoading = false, onUpdateTask, onUpdateStat
                               variant="ghost"
                               onClick={() => saveEditing(task.id)}
                               className="h-7 w-7 p-0"
+                              disabled={updatingTaskId === task.id}
                             >
-                              <Save className="h-4 w-4" />
+                              {updatingTaskId === task.id ? (
+                                <LoadingSpinner size={16} />
+                              ) : (
+                                <Save className="h-4 w-4" />
+                              )}
                             </Button>
                           </div>
                         </div>
@@ -319,106 +352,82 @@ export function TaskTable({ tasks, isLoading = false, onUpdateTask, onUpdateStat
                     <TableCell>
                       <Select
                         value={task.status}
-                        onValueChange={(status: "pending" | "in_progress" | "completed") =>
-                          onUpdateStatus({ id: task.id, status })
+                        onValueChange={(value) => 
+                          handleStatusChange(task.id, value as "pending" | "in_progress" | "completed")
                         }
+                        disabled={updatingStatusId === task.id}
                       >
-                        <SelectTrigger className={`w-[180px] transition-all ${getStatusColor(task.status)}`}>
-                          <SelectValue placeholder="Select Status">
-                            <div className="flex items-center gap-2">
-                              {getStatusIcon(task.status)}
-                              <span className="capitalize">{task.status.replace("_", " ")}</span>
+                        <SelectTrigger className={`w-[140px] ${getStatusColor(task.status)}`}>
+                          {updatingStatusId === task.id ? (
+                            <div className="flex items-center">
+                              <LoadingSpinner size={16} className="mr-2" />
+                              <span>Updating...</span>
                             </div>
-                          </SelectValue>
+                          ) : (
+                            <SelectValue>
+                              <div className="flex items-center">
+                                {getStatusIcon(task.status)}
+                                <span className="ml-2 capitalize">
+                                  {task.status.replace("_", " ")}
+                                </span>
+                              </div>
+                            </SelectValue>
+                          )}
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="pending" className="flex items-center gap-2">
-                            <Clock className="h-4 w-4 text-yellow-500" />
-                            <span>Pending</span>
+                          <SelectItem value="pending">
+                            <div className="flex items-center">
+                              <Clock className="h-4 w-4 text-yellow-500 mr-2" />
+                              <span>Pending</span>
+                            </div>
                           </SelectItem>
-                          <SelectItem value="in_progress" className="flex items-center gap-2">
-                            <RotateCcw className="h-4 w-4 text-blue-500" />
-                            <span>In Progress</span>
+                          <SelectItem value="in_progress">
+                            <div className="flex items-center">
+                              <RotateCcw className="h-4 w-4 text-blue-500 mr-2" />
+                              <span>In Progress</span>
+                            </div>
                           </SelectItem>
-                          <SelectItem value="completed" className="flex items-center gap-2">
-                            <CheckCircle2 className="h-4 w-4 text-green-500" />
-                            <span>Completed</span>
+                          <SelectItem value="completed">
+                            <div className="flex items-center">
+                              <CheckCircle2 className="h-4 w-4 text-green-500 mr-2" />
+                              <span>Completed</span>
+                            </div>
                           </SelectItem>
                         </SelectContent>
                       </Select>
                     </TableCell>
                     <TableCell className="text-right">
-                      <div className="flex justify-end gap-2 opacity-70 group-hover:opacity-100 transition-opacity">
-                        {editingId === task.id ? (
-                          <>
-                            <Tooltip>
-                              <TooltipTrigger asChild>
-                                <Button size="sm" onClick={() => saveEditing(task.id)} className="h-8 px-3">
-                                  <Save className="h-4 w-4 mr-1" />
-                                  Save
-                                </Button>
-                              </TooltipTrigger>
-                              <TooltipContent>Save changes (Enter)</TooltipContent>
-                            </Tooltip>
-                            <Tooltip>
-                              <TooltipTrigger asChild>
-                                <Button size="sm" variant="outline" onClick={cancelEditing} className="h-8 px-3">
-                                  Cancel
-                                </Button>
-                              </TooltipTrigger>
-                              <TooltipContent>Cancel editing (Esc)</TooltipContent>
-                            </Tooltip>
-                          </>
-                        ) : (
-                          <>
-                            <Tooltip>
-                              <TooltipTrigger asChild>
-                                <Button
-                                  size="sm"
-                                  variant="outline"
-                                  onClick={() => startEditing(task)}
-                                  className="h-8 w-8 p-0"
-                                >
-                                  <Edit2 className="h-4 w-4" />
-                                </Button>
-                              </TooltipTrigger>
-                              <TooltipContent>Edit task</TooltipContent>
-                            </Tooltip>
-                            <AlertDialog>
-                              <Tooltip>
-                                <TooltipTrigger asChild>
-                                  <AlertDialogTrigger asChild>
-                                    <Button
-                                      size="sm"
-                                      variant="outline"
-                                      className="h-8 w-8 p-0 text-destructive hover:text-destructive hover:bg-destructive/10"
-                                    >
-                                      <Trash2 className="h-4 w-4" />
-                                    </Button>
-                                  </AlertDialogTrigger>
-                                </TooltipTrigger>
-                                <TooltipContent>Delete task</TooltipContent>
-                              </Tooltip>
-                              <AlertDialogContent>
-                                <AlertDialogHeader>
-                                  <AlertDialogTitle>Delete Task</AlertDialogTitle>
-                                  <AlertDialogDescription>
-                                    Are you sure you want to delete "{task.title}"? This action cannot be undone.
-                                  </AlertDialogDescription>
-                                </AlertDialogHeader>
-                                <AlertDialogFooter>
-                                  <AlertDialogCancel>Cancel</AlertDialogCancel>
-                                  <AlertDialogAction
-                                    onClick={() => onDelete(task.id)}
-                                    className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                                  >
-                                    Delete
-                                  </AlertDialogAction>
-                                </AlertDialogFooter>
-                              </AlertDialogContent>
-                            </AlertDialog>
-                          </>
-                        )}
+                      <div className="flex justify-end gap-2">
+                        <AlertDialog>
+                          <AlertDialogTrigger asChild>
+                            <Button
+                              size="sm"
+                              variant="destructive"
+                              className="h-8 w-8 p-0"
+                              disabled={deletingTaskId === task.id}
+                            >
+                              {deletingTaskId === task.id ? (
+                                <LoadingSpinner size={16} />
+                              ) : (
+                                <Trash2 className="h-4 w-4" />
+                              )}
+                            </Button>
+                          </AlertDialogTrigger>
+                          <AlertDialogContent>
+                            <AlertDialogHeader>
+                              <AlertDialogTitle>Delete Task</AlertDialogTitle>
+                              <AlertDialogDescription>
+                                Are you sure you want to delete this task? This action cannot be undone.
+                              </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                              <AlertDialogCancel>Cancel</AlertDialogCancel>
+                              <AlertDialogAction onClick={() => handleDelete(task.id)}>
+                                Delete
+                              </AlertDialogAction>
+                            </AlertDialogFooter>
+                          </AlertDialogContent>
+                        </AlertDialog>
                       </div>
                     </TableCell>
                   </motion.tr>
@@ -427,12 +436,6 @@ export function TaskTable({ tasks, isLoading = false, onUpdateTask, onUpdateStat
             </TableBody>
           </Table>
         </div>
-
-        {filteredTasks.length > 0 && (
-          <div className="text-sm text-muted-foreground text-right">
-            Showing {filteredTasks.length} of {tasks.length} tasks
-          </div>
-        )}
       </div>
     </TooltipProvider>
   )
