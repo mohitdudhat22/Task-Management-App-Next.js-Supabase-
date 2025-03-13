@@ -21,6 +21,7 @@ import React from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
+import toast from "react-hot-toast";
 
 // Define the schema using Zod
 const signUpSchema = z.object({
@@ -43,8 +44,16 @@ export default function Signup(props: { searchParams: Promise<Message> }) {
   });
 
   const onSubmit = (data: any) => {
+    const formData = new FormData();
+    formData.append("email", data.email);
+    formData.append("password", data.password);
     // Handle form submission
-    signUpAction(data);
+    try {
+      signUpAction(formData);
+    } catch (error) {
+      toast.error('Sign up failed');
+      console.error(error);
+    }
   };
 
   return (

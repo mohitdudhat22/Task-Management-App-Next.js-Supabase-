@@ -5,7 +5,7 @@ const supabase = createClient();
 
 export const userApi = {
     getUserByEmail: async (email: string) => {
-        const { data, error } = await supabase.from('users').select('*').eq('email', email).single();
+        const { data, error } = await supabase.from('users').select('*').eq('email', email).maybeSingle();
         if (error) throw error;
         return data;
     }

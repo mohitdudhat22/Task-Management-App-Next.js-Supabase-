@@ -13,16 +13,18 @@ export const signUpAction = async (formData: FormData) => {
   const origin = (await headers()).get("origin");
 
   if (!email || !password) {
-    return encodedRedirect("error", "/sign-up", "Email and password are required");
+    return encodedRedirect(
+      "error",
+      "/sign-up",
+      "Email and password are required",
+    );
+  }
+   //check if user exists
+   const user = await userApi.getUserByEmail(email);
+   if (user) {
+    return encodedRedirect("error", "/sign-up", "User already exists");
   }
 
-  //check for it email already exists
-  const user = await userApi.getUserByEmail(email);
-  if (user) {
-    return encodedRedirect("error", "/sign-up", "Email already exists");
-  }
-
-  // Sign up with Supabase Auth
   const { error } = await supabase.auth.signUp({
     email,
     password,
@@ -34,13 +36,13 @@ export const signUpAction = async (formData: FormData) => {
   if (error) {
     console.error(error.code + " " + error.message);
     return encodedRedirect("error", "/sign-up", error.message);
+  } else {
+    return encodedRedirect(
+      "success",
+      "/sign-up",
+      "Thanks for signing up! Please check your email for a verification link.",
+    );
   }
-
-  return encodedRedirect(
-    "success",
-    "/sign-up",
-    "Thanks for signing up! Please check your email for a verification link.",
-  );
 };
 
 export const signInAction = async (formData: FormData) => {
