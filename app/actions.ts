@@ -13,16 +13,12 @@ export const signUpAction = async (formData: FormData) => {
   const origin = (await headers()).get("origin");
 
   if (!email || !password) {
-    return encodedRedirect(
-      "error",
-      "/sign-up",
-      "Email and password are required",
-    );
+    return { success: false, message: "Email and password are required" };
   }
    //check if user exists
    const user = await userApi.getUserByEmail(email);
    if (user) {
-    return encodedRedirect("error", "/sign-up", "User already exists");
+    return { success: false, message: "User already exists" };
   }
 
   const { error } = await supabase.auth.signUp({
@@ -35,31 +31,38 @@ export const signUpAction = async (formData: FormData) => {
 
   if (error) {
     console.error(error.code + " " + error.message);
-    return encodedRedirect("error", "/sign-up", error.message);
-  } else {
-    return encodedRedirect(
-      "success",
-      "/sign-up",
-      "Thanks for signing up! Please check your email for a verification link.",
-    );
+    return { success: false, message: error.message };
   }
+
+  return { 
+    success: true, 
+    message: "Thanks for signing up! Please check your email for a verification link."
+  };
 };
 
 export const signInAction = async (formData: FormData) => {
-  const email = formData.get("email") as string;
-  const password = formData.get("password") as string;
-  const supabase = await createClient();
-  console.log(email, password);
-  const { error } = await supabase.auth.signInWithPassword({
-    email,
-    password,
-  });
+  try {
+    const email = formData.get("email") as string;
+    const password = formData.get("password") as string;
+    const supabase = await createClient();
 
-  if (error) {
-    return encodedRedirect("error", "/sign-in", error.message);
+    if (!email || !password) {
+      return { success: false, message: "Email and password are required" };
+    }
+
+    const { error } = await supabase.auth.signInWithPassword({
+      email,
+      password,
+    });
+
+    if (error) {
+      return { success: false, message: error.message };
+    }
+
+    return { success: true, message: "Sign in successful", redirect: "/projects" };
+  } catch (error) {
+    return { success: false, message: "Sign in failed" };
   }
-
-  return redirect("/projects");
 };
 
 export const forgotPasswordAction = async (formData: FormData) => {

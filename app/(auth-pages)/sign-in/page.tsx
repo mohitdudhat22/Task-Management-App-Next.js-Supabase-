@@ -22,6 +22,7 @@ import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import toast from "react-hot-toast";
+import { useRouter } from "next/navigation";
 
 // Define the schema using Zod
 const signInSchema = z.object({
@@ -31,6 +32,8 @@ const signInSchema = z.object({
 
 export default function Login(props: { searchParams: Promise<Message> }) {
   const [searchParams, setSearchParams] = React.useState<Message | null>(null);
+  const [isLoading, setIsLoading] = React.useState(false);
+  const router = useRouter();
 
   React.useEffect(() => {
     props.searchParams.then(setSearchParams);
@@ -43,18 +46,27 @@ export default function Login(props: { searchParams: Promise<Message> }) {
     resolver: zodResolver(signInSchema),
   });
 
-  const onSubmit = (data: any) => {
-    // Convert the form data to FormData
-    const formData = new FormData();
-    formData.append("email", data.email);
-    formData.append("password", data.password);
-
-    // Handle form submission
+  const onSubmit = async (data: z.infer<typeof signInSchema>) => {
+    setIsLoading(true);
     try {
-      signInAction(formData);
+      const formData = new FormData();
+      formData.append('email', data.email);
+      formData.append('password', data.password);
+      
+      const result = await signInAction(formData);
+      if (result.success) {
+        toast.success(result.message);
+        if (result.redirect) {
+          router.push(result.redirect);
+        }
+      } else {
+        toast.error(result.message);
+      }
     } catch (error) {
       toast.error('Sign in failed');
       console.error(error);
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -89,8 +101,12 @@ export default function Login(props: { searchParams: Promise<Message> }) {
               required
             />
             {errors.password && <span>{errors.password.message}</span>}
-            <SubmitButton pendingText="Signing In..." formAction={signInAction}>
-              Sign in
+            <SubmitButton
+              pendingText="Signing in..."
+              disabled={isLoading}
+              className="mt-2"
+            >
+              {isLoading ? "Signing in..." : "Sign in"}
             </SubmitButton>
             {searchParams && <FormMessage message={searchParams} />}
           </div>
