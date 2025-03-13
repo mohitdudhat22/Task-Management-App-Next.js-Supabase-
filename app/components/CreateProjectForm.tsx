@@ -33,7 +33,7 @@ export function CreateProjectForm({ onCreate, isLoading: externalLoading }: Crea
     const onSubmit = async (data: z.infer<typeof projectSchema>) => {
         setInternalLoading(true);
         try {
-            await onCreate(data);
+            await onCreate(data as { name: string; description: string });
             reset(); // Reset form after successful creation
         } finally {
             setInternalLoading(false);

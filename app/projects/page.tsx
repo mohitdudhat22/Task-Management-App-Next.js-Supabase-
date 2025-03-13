@@ -79,9 +79,9 @@ export default function ProjectsPage() {
               </CardHeader>
               <CardContent>
                 <CreateProjectForm
-                  onCreate={(project: Omit<Project, 'id' | 'created_at' | 'user_id' | 'title'>) => {
-                    createProject(project as any  )
-                    setShowCreateProjectForm(false)
+                  onCreate={async (project) => {
+                    await createProject(project as any);
+                    setShowCreateProjectForm(false);
                   }}
                 />
               </CardContent>
@@ -136,9 +136,9 @@ export default function ProjectsPage() {
               <CardContent>
                 <CreateTaskForm
                   projects={projects}
-                  onCreate={(task) => {
-                    createTask(task)
-                    setShowCreateTaskForm(false)
+                  onCreate={async (task) => {
+                    await createTask(task as any);
+                    setShowCreateTaskForm(false);
                   }}
                 />
               </CardContent>
