@@ -34,6 +34,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 import { Badge } from "@/components/ui/badge"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { motion } from "framer-motion"
+import { LoadingSpinner } from "@/app/components/LoadingSpinner"
 
 interface Task {
   id: string
@@ -43,12 +44,13 @@ interface Task {
 
 interface TaskTableProps {
   tasks: Task[]
+  isLoading?: boolean
   onUpdateTask: (task: { id: string; title: string; status: "pending" | "in_progress" | "completed" }) => void
   onUpdateStatus: (task: { id: string; status: "pending" | "in_progress" | "completed" }) => void
   onDelete: (taskId: string) => void
 }
 
-export function TaskTable({ tasks, onUpdateTask, onUpdateStatus, onDelete }: TaskTableProps) {
+export function TaskTable({ tasks, isLoading = false, onUpdateTask, onUpdateStatus, onDelete }: TaskTableProps) {
   const [editingId, setEditingId] = useState<string | null>(null)
   const [editTitle, setEditTitle] = useState("")
   const [searchTerm, setSearchTerm] = useState("")
@@ -241,7 +243,16 @@ export function TaskTable({ tasks, onUpdateTask, onUpdateStatus, onDelete }: Tas
               </TableRow>
             </TableHeader>
             <TableBody>
-              {filteredTasks.length === 0 ? (
+              {isLoading ? (
+                <TableRow>
+                  <TableCell colSpan={3} className="h-32 text-center">
+                    <div className="flex flex-col items-center justify-center text-muted-foreground">
+                      <LoadingSpinner size={40} className="mb-2 opacity-50" />
+                      <p>Loading tasks...</p>
+                    </div>
+                  </TableCell>
+                </TableRow>
+              ) : filteredTasks.length === 0 ? (
                 <TableRow>
                   <TableCell colSpan={3} className="h-32 text-center">
                     <div className="flex flex-col items-center justify-center text-muted-foreground">

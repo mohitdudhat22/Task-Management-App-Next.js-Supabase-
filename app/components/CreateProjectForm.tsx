@@ -4,6 +4,7 @@ import { z } from 'zod';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { LoadingSpinner } from '@/app/components/LoadingSpinner';
 
 interface CreateProjectFormProps {
     onCreate: (project: { name: string; description: string }) => void;
@@ -14,7 +15,7 @@ const projectSchema = z.object({
     description: z.string().min(1, "Description is required"),
 });
 
-export function CreateProjectForm({ onCreate }: CreateProjectFormProps) {
+export function CreateProjectForm({ onCreate, isLoading }: CreateProjectFormProps & { isLoading?: boolean }) {
     const { register, handleSubmit, formState: { errors } } = useForm({
         resolver: zodResolver(projectSchema),
     });
@@ -37,8 +38,15 @@ export function CreateProjectForm({ onCreate }: CreateProjectFormProps) {
                     <Input id="description" {...register('description')} />
                     {errors.description && <p className="text-red-500">{errors.description.message}</p>}
                 </div>
-                <Button type="submit">
-                    Create Project
+                <Button type="submit" disabled={isLoading}>
+                    {isLoading ? (
+                        <>
+                            <LoadingSpinner size={16} className="mr-2" />
+                            Creating...
+                        </>
+                    ) : (
+                        'Create Project'
+                    )}
                 </Button>
             </div>
         </form>

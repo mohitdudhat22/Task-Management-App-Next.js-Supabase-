@@ -28,11 +28,12 @@ interface Project {
 
 interface ProjectTableProps {
   projects: Project[];
+  isLoading?: boolean;
   onDelete: (projectId: string) => void;
   onUpdate: (projectId: string, updatedProject: Project) => void;
 }
 
-export function ProjectTable({ projects, onDelete, onUpdate }: ProjectTableProps) {
+export function ProjectTable({ projects, isLoading = false, onDelete, onUpdate }: ProjectTableProps) {
   const router = useRouter();
   const [editingId, setEditingId] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
@@ -132,7 +133,7 @@ export function ProjectTable({ projects, onDelete, onUpdate }: ProjectTableProps
                         <>
                         <Button 
                             size="sm" 
-                            onClick={() => router.push(`/protected/tasks/${project.id}`)}
+                            onClick={() => router.push(`/tasks/${project.id}`)}
                             className="h-8 px-2"
                           >
                             Tasks

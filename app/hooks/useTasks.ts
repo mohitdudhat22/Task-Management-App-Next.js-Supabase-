@@ -15,7 +15,7 @@ interface Task {
 export function useTasks() {
     const queryClient = useQueryClient();
 
-    const { data: tasks = [] } = useQuery<Task[]>({
+    const { data: tasks = [], isLoading: isTasksLoading } = useQuery<Task[]>({
         queryKey: ['tasks'],
         queryFn: taskApi.getAll
     });
@@ -72,10 +72,15 @@ export function useTasks() {
 
     return {
         tasks,
+        isLoading: isTasksLoading,
         createTask: createMutation.mutate,
+        isCreating: createMutation.isPending,
         updateTask: updateTaskMutation.mutate,
+        isUpdating: updateTaskMutation.isPending,
         updateStatus: updateStatusMutation.mutate,
+        isUpdatingStatus: updateStatusMutation.isPending,
         deleteTask: deleteMutation.mutate,
+        isDeleting: deleteMutation.isPending,
         getTasksByProject
     };
 } 

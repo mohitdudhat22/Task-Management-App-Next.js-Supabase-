@@ -5,7 +5,7 @@ import toast from 'react-hot-toast';
 export function useProjects() {
     const queryClient = useQueryClient();
 
-    const { data: projects = [] } = useQuery({
+    const { data: projects = [], isLoading: isProjectsLoading } = useQuery({
         queryKey: ['projects'],
         queryFn: projectApi.getAll
     });
@@ -46,8 +46,12 @@ export function useProjects() {
 
     return {
         projects,
+        isLoading: isProjectsLoading,
         createProject: createMutation.mutate,
+        isCreating: createMutation.isPending,
         deleteProject: deleteMutation.mutate,
+        isDeleting: deleteMutation.isPending,
         updateProject: updateMutation.mutate,
-        };
+        isUpdating: updateMutation.isPending,
+    };
 } 
