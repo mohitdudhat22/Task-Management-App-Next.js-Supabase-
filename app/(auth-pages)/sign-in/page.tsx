@@ -17,7 +17,7 @@ import {
 } from "@/components/ui/card";
 import { ShineBorder } from "@/components/magicui/shine-border";
 import { useTheme } from "next-themes";
-import React from "react";
+import React, { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -30,14 +30,25 @@ const signInSchema = z.object({
   password: z.string().min(6, "Password must be at least 6 characters long"),
 });
 
-export default function Login(props: { searchParams: Promise<Message> }) {
-  const [searchParams, setSearchParams] = React.useState<Message | null>(null);
+export default function Login({ 
+  searchParams 
+}: { 
+  searchParams: { redirect?: string; message?: string } 
+}) {
   const [isLoading, setIsLoading] = React.useState(false);
   const router = useRouter();
-
-  React.useEffect(() => {
-    props.searchParams.then(setSearchParams);
-  }, [props.searchParams]);
+  
+  // Use state to store the redirect path
+  const [redirectPath, setRedirectPath] = React.useState('/projects');
+  
+  // Set the redirect path from searchParams on mount
+  useEffect(() => {
+    if (searchParams?.redirect) {
+      setRedirectPath(searchParams.redirect);
+    }
+    console.log("Redirect path from params:", searchParams?.redirect);
+    console.log("Final redirect path:", redirectPath);
+  }, [searchParams]);
 
   const theme = useTheme();
 
@@ -49,22 +60,28 @@ export default function Login(props: { searchParams: Promise<Message> }) {
   const onSubmit = async (data: z.infer<typeof signInSchema>) => {
     setIsLoading(true);
     try {
+      console.log("Starting sign in with redirect to:", redirectPath);
+      
       const formData = new FormData();
       formData.append('email', data.email);
       formData.append('password', data.password);
+      formData.append('redirectTo', redirectPath);
       
       const result = await signInAction(formData);
+      console.log("Sign in result:", result);
+      
       if (result.success) {
         toast.success(result.message);
-        if (result.redirect) {
-          router.push(result.redirect);
-        }
+        console.log("Redirecting to:", result.redirect || redirectPath);
+        
+        // Force a hard navigation instead of client-side routing
+        window.location.href = result.redirect || redirectPath;
       } else {
         toast.error(result.message);
       }
     } catch (error) {
       toast.error('Sign in failed');
-      console.error(error);
+      console.error("Sign in error:", error);
     } finally {
       setIsLoading(false);
     }
@@ -72,7 +89,7 @@ export default function Login(props: { searchParams: Promise<Message> }) {
 
   return (
     <Card className="relative overflow-hidden">
-        <ShineBorder shineColor={["#A07CFE", "#FE8FB5", "#FFBE7B"]}  />
+      <ShineBorder shineColor={["#A07CFE", "#FE8FB5", "#FFBE7B"]} />
       <CardHeader>
         <CardTitle>Login</CardTitle>
         <CardDescription>
@@ -108,7 +125,6 @@ export default function Login(props: { searchParams: Promise<Message> }) {
             >
               {isLoading ? "Signing in..." : "Sign in"}
             </SubmitButton>
-            {searchParams && <FormMessage message={searchParams} />}
           </div>
         </form>
       </CardContent>

@@ -44,6 +44,10 @@ export const signInAction = async (formData: FormData) => {
   try {
     const email = formData.get("email") as string;
     const password = formData.get("password") as string;
+    const redirectTo = formData.get("redirectTo") as string || "/projects";
+    
+    console.log("Sign in action received redirectTo:", redirectTo);
+    
     const supabase = await createClient();
 
     if (!email || !password) {
@@ -59,8 +63,15 @@ export const signInAction = async (formData: FormData) => {
       return { success: false, message: error.message };
     }
 
-    return { success: true, message: "Sign in successful", redirect: "/projects" };
+    console.log("Sign in successful, redirecting to:", redirectTo);
+    
+    return { 
+      success: true, 
+      message: "Sign in successful", 
+      redirect: redirectTo 
+    };
   } catch (error) {
+    console.error("Sign in error:", error);
     return { success: false, message: "Sign in failed" };
   }
 };
