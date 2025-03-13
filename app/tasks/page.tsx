@@ -1,6 +1,6 @@
 'use client'
 
-import { TaskTable } from "@/app/components/TaskTable";
+import { TaskTable } from "@/app/components/reusable/TaskTable";
 import { useTasks } from "@/app/hooks/useTasks";
 import { useParams } from "next/navigation";
 

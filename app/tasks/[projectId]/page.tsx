@@ -1,11 +1,11 @@
 'use client';
 
 import { useTasks } from "@/app/hooks/useTasks";
-import { TaskTable } from "@/app/components/TaskTable";
+import { TaskTable } from "@/app/components/reusable/TaskTable";
 import { Card, CardContent, CardDescription, CardTitle } from "@/components/ui/card";
 import { CardHeader } from "@/components/ui/card";
 import { useParams } from "next/navigation";
-import { LoadingSpinner } from "@/app/components/LoadingSpinner";
+import { LoadingSpinner } from "@/app/components/reusable/LoadingSpinner";
 
 export default function ProjectTasksPage() {
   const params = useParams();

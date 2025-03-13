@@ -19,7 +19,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Edit2, Save, Trash2, FileText, Search, SortAsc, SortDesc, X, Info } from 'lucide-react';
 import { Badge } from "@/components/ui/badge";
-import { LoadingSpinner } from '@/app/components/LoadingSpinner';
+import { LoadingSpinner } from '@/app/components/reusable/LoadingSpinner';
 
 interface Project {
   id: string;

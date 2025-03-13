@@ -34,7 +34,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 import { Badge } from "@/components/ui/badge"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { motion } from "framer-motion"
-import { LoadingSpinner } from "@/app/components/LoadingSpinner"
+import { LoadingSpinner } from "@/app/components/reusable/LoadingSpinner"
 
 interface Task {
   id: string

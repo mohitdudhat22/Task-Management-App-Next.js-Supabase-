@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { LoadingSpinner } from '@/app/components/LoadingSpinner';
+import { LoadingSpinner } from '@/app/components/reusable/LoadingSpinner';
 import { useState } from 'react';
 
 interface CreateProjectFormProps {
