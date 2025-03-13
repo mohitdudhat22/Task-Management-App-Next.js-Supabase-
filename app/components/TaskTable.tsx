@@ -395,6 +395,16 @@ export function TaskTable({ tasks, isLoading = false, onUpdateTask, onUpdateStat
                     </TableCell>
                     <TableCell className="text-right">
                       <div className="flex justify-end gap-2">
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="h-8 w-8 p-0"
+                          onClick={() => startEditing(task)}
+                          disabled={editingId === task.id || updatingTaskId === task.id}
+                        >
+                          <Edit2 className="h-4 w-4" />
+                        </Button>
+                        
                         <AlertDialog>
                           <AlertDialogTrigger asChild>
                             <Button
